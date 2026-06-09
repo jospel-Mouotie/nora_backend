@@ -10,6 +10,7 @@ use App\Models\Video;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class UserHabitController extends Controller
 {
@@ -43,12 +44,17 @@ class UserHabitController extends Controller
             );
 
             return response()->json([
+                'success' => true,
                 'message' => 'Action enregistrée avec succès',
                 'habit' => $habit,
             ], 201);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in trackAction: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -65,13 +71,18 @@ class UserHabitController extends Controller
             $viewHistory = UserHabitTracker::getUserViewHistory($userId, $limit, $entityType);
 
             return response()->json([
+                'success' => true,
                 'view_history' => $viewHistory,
                 'limit' => $limit,
                 'entity_type' => $entityType,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in getViewHistory: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -87,7 +98,6 @@ class UserHabitController extends Controller
         try {
             $mostViewedCategories = UserHabitTracker::getUserMostViewedCategories($userId, $limit, $days);
 
-            // Charger les détails des catégories
             $categories = Category::whereIn('id', $mostViewedCategories->pluck('entity_id'))
                                  ->get();
 
@@ -100,13 +110,18 @@ class UserHabitController extends Controller
             });
 
             return response()->json([
+                'success' => true,
                 'most_viewed_categories' => $result,
                 'limit' => $limit,
                 'days' => $days,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in getMostViewedCategories: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -122,7 +137,6 @@ class UserHabitController extends Controller
         try {
             $mostViewedProducts = UserHabitTracker::getUserMostViewedProducts($userId, $limit, $days);
 
-            // Charger les détails des produits
             $products = Product::whereIn('id', $mostViewedProducts->pluck('entity_id'))
                               ->with(['category', 'shop'])
                               ->get();
@@ -136,13 +150,18 @@ class UserHabitController extends Controller
             });
 
             return response()->json([
+                'success' => true,
                 'most_viewed_products' => $result,
                 'limit' => $limit,
                 'days' => $days,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in getMostViewedProducts: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -159,13 +178,18 @@ class UserHabitController extends Controller
             $searchHistory = UserHabitTracker::getUserSearchHistory($userId, $limit, $days);
 
             return response()->json([
+                'success' => true,
                 'search_history' => $searchHistory,
                 'limit' => $limit,
                 'days' => $days,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in getSearchHistory: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -181,7 +205,6 @@ class UserHabitController extends Controller
         try {
             $purchaseHistory = UserHabitTracker::getUserPurchaseHistory($userId, $limit, $days);
 
-            // Charger les détails des produits
             $productIds = $purchaseHistory->pluck('entity_id');
             $products = Product::whereIn('id', $productIds)
                               ->with(['category', 'shop'])
@@ -200,13 +223,18 @@ class UserHabitController extends Controller
             });
 
             return response()->json([
+                'success' => true,
                 'purchase_history' => $result,
                 'limit' => $limit,
                 'days' => $days,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in getPurchaseHistory: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -222,17 +250,22 @@ class UserHabitController extends Controller
             $activityPattern = UserHabitTracker::getUserActivityPattern($userId, $days);
 
             return response()->json([
+                'success' => true,
                 'activity_pattern' => $activityPattern,
                 'days' => $days,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in getActivityPattern: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
     /**
-     * Obtenir les produits recommandés pour l'utilisateur
+     * Obtenir les produits recommandés pour l'utilisateur (basé sur les habitudes)
      */
     public function getRecommendedProducts(Request $request): JsonResponse
     {
@@ -244,13 +277,19 @@ class UserHabitController extends Controller
             $recommendedProducts = UserHabitTracker::getRecommendedProducts($userId, $limit, $days);
 
             return response()->json([
+                'success' => true,
                 'recommended_products' => $recommendedProducts,
                 'limit' => $limit,
                 'days' => $days,
+                'recommendation_type' => 'based_on_habits'
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in getRecommendedProducts: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -267,13 +306,18 @@ class UserHabitController extends Controller
             $recommendedCategories = UserHabitTracker::getRecommendedCategories($userId, $limit, $days);
 
             return response()->json([
+                'success' => true,
                 'recommended_categories' => $recommendedCategories,
                 'limit' => $limit,
                 'days' => $days,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in getRecommendedCategories: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -287,7 +331,6 @@ class UserHabitController extends Controller
         $days = $request->days ?? 30;
 
         try {
-            // Basé sur les boutiques les plus consultées par l'utilisateur
             $mostViewedShops = UserHabitTracker::where('user_id', $userId)
                                               ->where('action_type', 'view')
                                               ->where('entity_type', 'shop')
@@ -299,14 +342,12 @@ class UserHabitController extends Controller
                                               ->pluck('entity_id');
 
             if ($mostViewedShops->isEmpty()) {
-                // Si l'utilisateur n'a pas d'historique, retourner les boutiques les plus populaires
                 $shops = Shop::active()
                            ->withCount(['products', 'orders'])
                            ->orderBy('orders_count', 'desc')
                            ->limit($limit)
                            ->get();
             } else {
-                // Trouver des boutiques similaires basées sur les catégories vues
                 $viewedShops = Shop::whereIn('id', $mostViewedShops)
                                   ->with('products.category')
                                   ->get();
@@ -328,13 +369,18 @@ class UserHabitController extends Controller
             }
 
             return response()->json([
+                'success' => true,
                 'recommended_shops' => $shops,
                 'limit' => $limit,
                 'days' => $days,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in getRecommendedShops: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -348,7 +394,6 @@ class UserHabitController extends Controller
         $days = $request->days ?? 30;
 
         try {
-            // Basé sur les vidéos les plus vues par l'utilisateur
             $mostViewedVideos = UserHabitTracker::where('user_id', $userId)
                                                ->where('action_type', 'view')
                                                ->where('entity_type', 'video')
@@ -360,19 +405,16 @@ class UserHabitController extends Controller
                                                ->pluck('entity_id');
 
             if ($mostViewedVideos->isEmpty()) {
-                // Si l'utilisateur n'a pas d'historique, retourner les vidéos tendances
                 $videos = Video::public()
                              ->with(['user', 'shop'])
                              ->orderBy('view_count', 'desc')
                              ->limit($limit)
                              ->get();
             } else {
-                // Trouver des vidéos similaires basées sur les catégories/boutiques vues
                 $viewedVideos = Video::whereIn('id', $mostViewedVideos)
                                     ->with(['category', 'shop'])
                                     ->get();
 
-                // Trouver des vidéos des mêmes catégories ou boutiques
                 $categoryIds = $viewedVideos->pluck('category_id')->unique();
                 $shopIds = $viewedVideos->pluck('shop_id')->unique();
 
@@ -389,13 +431,18 @@ class UserHabitController extends Controller
             }
 
             return response()->json([
+                'success' => true,
                 'recommended_videos' => $videos,
                 'limit' => $limit,
                 'days' => $days,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in getRecommendedVideos: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -425,10 +472,17 @@ class UserHabitController extends Controller
                 'activity_pattern' => UserHabitTracker::getUserActivityPattern($userId, 7),
             ];
 
-            return response()->json(['stats' => $stats]);
+            return response()->json([
+                'success' => true,
+                'stats' => $stats
+            ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error in getStats: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -451,17 +505,14 @@ class UserHabitController extends Controller
             $userId = auth()->id();
             $query = UserHabitTracker::where('user_id', $userId);
 
-            // Filtrer par période si spécifié
             if ($request->days) {
                 $query->where('action_time', '>=', now()->subDays($request->days));
             }
 
-            // Filtrer par type d'action si spécifié
             if ($request->action_type) {
                 $query->where('action_type', $request->action_type);
             }
 
-            // Filtrer par type d'entité si spécifié
             if ($request->entity_type) {
                 $query->where('entity_type', $request->entity_type);
             }
@@ -469,48 +520,17 @@ class UserHabitController extends Controller
             $deletedCount = $query->delete();
 
             return response()->json([
+                'success' => true,
                 'message' => 'Historique supprimé avec succès',
                 'deleted_count' => $deletedCount,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-
-    /**
-     * Exporter les données des habitudes de l'utilisateur
-     */
-    public function exportData(Request $request): JsonResponse
-    {
-        $userId = auth()->id();
-        $days = $request->days ?? 90;
-        $format = $request->format ?? 'json';
-
-        try {
-            $habits = UserHabitTracker::where('user_id', $userId)
-                                     ->where('action_time', '>=', now()->subDays($days))
-                                     ->orderBy('action_time', 'desc')
-                                     ->get();
-
-            if ($format === 'csv') {
-                // Implémentation CSV simplifiée
-                $csvData = "Date,Type d'action,Type d'entité,ID entité,Métadonnées\n";
-                foreach ($habits as $habit) {
-                    $csvData .= "{$habit->action_time},{$habit->action_type},{$habit->entity_type},{$habit->entity_id},\"" . json_encode($habit->metadata) . "\"\n";
-                }
-                return response($csvData, 200, ['Content-Type' => 'text/csv']);
-            }
-
+            Log::error('Error in clearHistory: ' . $e->getMessage());
             return response()->json([
-                'habits' => $habits,
-                'days' => $days,
-                'format' => $format,
-                'export_date' => now()->toISOString(),
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

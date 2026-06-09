@@ -20,6 +20,7 @@ use App\Models\VideoView;
 use App\Models\MBCoin;
 use App\Models\MBReward;
 use App\Models\MBShopPurchase;
+use App\Models\UserInterest; // ✅ AJOUTER CETTE IMPORTATION
 
 class User extends Authenticatable
 {
@@ -46,7 +47,27 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    // Relationships
+    // ✅ AJOUTER CETTE RELATION
+    public function interests()
+    {
+        return $this->hasMany(UserInterest::class);
+    }
+
+    // ✅ Optionnel : Relation pour les intérêts actifs uniquement
+    public function activeInterests()
+    {
+        return $this->hasMany(UserInterest::class)->where('is_active', true);
+    }
+
+    // ✅ Optionnel : Relation pour les intérêts à haute priorité
+    public function highPriorityInterests()
+    {
+        return $this->hasMany(UserInterest::class)
+                    ->where('is_active', true)
+                    ->where('priority_level', '>=', 4);
+    }
+
+    // Relationships existants...
     public function shops()
     {
         return $this->hasMany(Shop::class);
@@ -94,7 +115,6 @@ class User extends Authenticatable
 
     public function unreadMessages()
     {
-        // Assuming a local scope "unread" exists on Message model
         return $this->receivedMessages()->unread();
     }
 
@@ -176,5 +196,22 @@ class User extends Authenticatable
     public function getTotalMBSpentAttribute()
     {
         return $this->mbShopPurchases()->completed()->sum('price_mb_coins');
+    }
+
+    // ✅ AJOUTER UNE MÉTHODE POUR RÉCUPÉRER LES INTÉRÊTS
+    public function getInterestIds()
+    {
+        return $this->interests()
+                    ->where('is_active', true)
+                    ->pluck('category_id')
+                    ->toArray();
+    }
+
+    // ✅ VÉRIFIER SI L'UTILISATEUR A DES INTÉRÊTS
+    public function hasInterests()
+    {
+        return $this->interests()
+                    ->where('is_active', true)
+                    ->exists();
     }
 }
