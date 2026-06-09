@@ -6,7 +6,7 @@ sleep 3
 echo "Exécution des migrations Laravel..."
 php artisan migrate --force
 
-echo "Optimisation des configurations de l'API..."
+echo "Optimisation de la configuration de l'API..."
 php artisan config:cache
 php artisan route:cache
 
