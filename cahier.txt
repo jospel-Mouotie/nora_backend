@@ -1,0 +1,569 @@
+📋 CAHIER DES CHARGES COMPLET - MBOA SHOP v3.0
+Version Finale - Avec Réels, Monnaie Virtuelle, Abonnements & QR Code
+1. PRÉSENTATION GÉNÉRALE
+1.1 Concept
+MBOA SHOP est une plateforme e-commerce où tous les produits sont obligatoirement rattachés à une boutique validée par l'admin. La plateforme intègre un système de réels (vidéos courtes) permettant aux utilisateurs et boutiques certifiées de publier du contenu. Les vues génèrent des gains en monnaie virtuelle utilisables pour acheter des produits.
+
+1.2 Acteurs
+#	Acteur	Rôle
+1	Client	Achete, regarde des vidéos, gagne MB Coins, poste 1 vidéo/semaine, peut s'abonner aux boutiques
+2	Commerçant	Vends, catalogue gratuit, assigne livreur, poste vidéos, gère ses propres publicités
+3	Grossiste	Vends en gros, catalogue gratuit, assigne livreur, poste vidéos, gère ses propres publicités
+4	Livreur	Livre, chat client, suivi GPS, scan QR code
+5	Admin	Gère tout, valide comptes et boutiques, commission, chat avec clients
+1.3 Règles Fondamentales
+Règle	Description
+Produits	Un produit est TOUJOURS rattaché à une boutique
+Boutique	Doit être validée par l'admin pour vendre
+Pas de boutique = Pas de produit	Impossible d'ajouter un produit sans boutique active
+2. FONCTIONNALITÉS DÉTAILLÉES
+2.1 Authentification & Profils
+Fonctionnalité	Description
+Inscription	Email + mot de passe ou Google/Facebook
+Rôles	client, commercant, grossiste, livreur, admin
+Profil	Nom, email, téléphone, avatar, bio
+Validation email	Obligatoire
+Validation admin	Pour commerçants, grossistes et livreurs
+2.2 Boutiques
+Fonctionnalité	Description
+Création	Seulement par commerçants/grossistes après inscription
+Validation	Admin doit valider la boutique avant toute vente
+Blocage	Boutique non validée = pas de produits visibles
+Abonnement	Les clients peuvent s'abonner aux boutiques
+Like boutique	Les clients peuvent liker une boutique
+Badge certifié	Apparaît si boutique certifiée
+Règles boutique :
+
+Produit ajouté = boutique déjà validée (active)
+
+Boutique en attente = pas de produits
+
+Boutique refusée = pas de produits
+
+2.3 Abonnement aux Boutiques
+Fonctionnalité	Description
+S'abonner	Client peut suivre une boutique
+Se désabonner	À tout moment
+Notifications	Recevoir les nouveautés de la boutique suivie
+Feed personnalisé	Voir les produits des boutiques suivies en priorité
+Compteur abonnés	Visible sur la page boutique
+2.4 Like de Boutique
+Fonctionnalité	Description
+Liker	Client peut liker une boutique (1 like par client)
+Retirer like	Possible à tout moment
+Compteur likes	Visible sur la page boutique
+Popularité	Les boutiques les plus likées sont mises en avant
+2.5 Produits & Variantes
+Caractéristique	Exemples
+Tailles	S, M, L, XL, XXL
+Couleurs	Rouge, Bleu, Noir, Blanc, Vert
+Matières	Coton, Polyester, Cuir
+Stock	Par variante (ex: "T-shirt rouge taille M : 10 pièces")
+Réductions & Promotions
+Type	Pourcentage fixe (ex: -20%)
+Montant réduit	Automatique dans panier
+Produits concernés	Produits en promotion uniquement
+Durée	Période limitée (dates début/fin)
+Affichage	Badge "Promotion" visible
+Règles :
+
+Un produit appartient à UNE boutique
+
+Boutique doit être active pour que produit soit visible
+
+Stock géré par variante
+
+Réduction applicable uniquement sur produits en stock
+
+Promotion visible sur fiche produit et liste
+
+Images Produits
+Maximum images	5 images par produit
+Restriction	Uniquement boutiques certifiées peuvent uploader plusieurs images
+Boutiques non certifiées	1 image maximum par produit
+
+2.6 Système de Vidéos (Réels)
+Règle	Description
+Clients	1 vidéo par semaine maximum
+Boutiques certifiées	Nombre illimité de vidéos
+Boutiques non certifiées	3 vidéos par semaine
+Durée vidéo	15 à 60 secondes
+Gain	1000 vues = 100 MB Coins
+Actions possibles sur une vidéo :
+
+❤️ Like
+
+💬 Commenter
+
+📤 Partager
+
+👤 Voir le profil du créateur
+
+🏪 Visiter la boutique (si créateur = boutique)
+
+➕ S'abonner à la boutique (si créateur = boutique)
+
+2.7 Feed Vidéos
+Type de feed	Description
+Principal	Vidéos des boutiques suivies + vidéos populaires
+Découvertes	Vidéos aléatoires
+Abonnements	Uniquement vidéos des boutiques suivies
+2.8 Monnaie Virtuelle (MB Coins)
+Élément	Valeur
+Nom	MB Coin
+Taux	1000 vues = 100 MB Coins (100 FCFA)
+Gain journalier max	50 000 MB Coins (50000 FCFA)
+Utilisation	Achat de produits sur la plateforme
+Boutique MB Shop :
+
+Produits exclusivement payables en MB Coins
+
+Produits hybrides (MB Coins + espèces)
+
+2.9 Publicités Boutique
+Règle	Description
+Emplacement	Uniquement sur la page de la boutique émettrice
+Création	Le commerçant/grossiste crée sa propre publicité
+Validation	Admin doit valider chaque publicité
+Durée	7, 14, ou 30 jours
+Tarif	Payé à l'admin
+Maximum actif	3 bannières par boutique
+Types de publicités boutique :
+
+Bannière image
+
+Mise en avant d'un produit spécifique
+
+Annonce promotionnelle
+
+2.10 Commandes & Livraison
+2.10.1 Code PIN
+Règle	Description
+Génération	Automatique à chaque commande
+Format	6 chiffres
+Envoi	Notification push au client
+Expiration	48 heures
+Tentatives	5 maximum
+2.10.2 QR Code
+Règle	Description
+Génération	Automatique à chaque commande
+Contenu	ID commande + PIN + timestamp
+Utilisation	Scan par le livreur pour validation
+Affichage	Client voit son QR code dans l'app
+Sécurité	QR code unique, expire avec le PIN
+Fonctionnement :
+
+text
+1. Livreur arrive chez client
+2. Client montre son QR code
+3. Livreur scanne le QR code
+4. Validation automatique de la livraison
+5. Option alternative : saisie manuelle du PIN
+2.10.3 Validation Croisée
+Validation	Qui	Quand
+Client	Donne son QR code ou PIN	Après réception colis
+Livreur	Scanne le QR code ou entre PIN	Après livraison
+Les deux validations sont REQUISES pour finaliser la commande.
+
+2.11 Chat Admin → Client
+Fonctionnalité	Description
+Déclenchement	Admin peut lancer un chat avec un client
+Utilisation	Préciser les détails d'une commande
+Historique	Conservé pour traçabilité
+Notification	Client reçoit une notification push
+Fermeture	Admin peut fermer le chat
+2.12 Chat Client ↔ Livreur
+Règle	Description
+Participants	Client et livreur uniquement
+Admin	Peut voir TOUS les chats
+Interdit	Client ne peut pas chatter avec commerçant
+Notifications	Nouveau message = notification push
+2.13 GPS Livraison
+Élément	Solution
+Technologie	OpenStreetMap + Leaflet
+Coût	Gratuit
+Fonction	Client voit position livreur en temps réel
+Précision	Mise à jour toutes les 5 secondes
+2.14 Stories Boutique
+Fonctionnalité	Description
+Création	Seulement par boutiques certifiées
+Durée	24 heures (disparaissent automatiquement)
+Contenu	Image ou vidéo courte (max 15 secondes)
+Visibilité	Uniquement les abonnés de la boutique peuvent voir
+Limite	Maximum 5 stories actives par boutique
+Validation	Admin doit valider chaque story
+Types de stories :
+Photo avec texte
+
+Vidéo courte (15 secondes max)
+
+Promotion produit
+
+Annonce spéciale
+3. BOUTIQUE CERTIFIÉE
+3.1 Conditions d'obtention
+Condition	Description
+Demande	Le commerçant fait une demande
+Paiement	Paye la certification (prix admin)
+Durée	12 mois
+Renouvellement	Payant chaque année
+3.2 Avantages
+Avantage	Description
+Badge	Badge "Certifié" visible
+Vidéos illimitées	Pas de limite hebdomadaire
+Référencement	Apparaît en premier dans les recherches
+Publicités	Tarifs préférentiels
+Commission réduite	Négociable avec admin
+Abonnés	Plus visibles
+4. TABLEAUX DE BORD
+4.1 Dashboard Admin
+Indicateur	Description
+Chiffre d'affaires	Jour/Semaine/Mois
+Commission totale	Perçue
+Utilisateurs	Par rôle
+Boutiques	Total/En attente/Actives/Certifiées
+Vidéos	Postées/Vues totales
+MB Coins	Générés/Utilisés
+Commandes	Par statut
+Abonnements	Nombre total d'abonnés
+Likes boutiques	Total
+4.2 Dashboard Commerçant
+Indicateur	Description
+Ventes	Jour/Semaine/Mois
+Vues vidéos	Total et par vidéo
+MB Coins générés	Gains vidéos
+Stock	Faible
+Commandes	En attente
+Abonnés	Nombre de followers
+Likes	Nombre de likes boutique
+Performance boutique	Note moyenne
+4.3 Dashboard Client
+Indicateur	Description
+Commandes	Historique
+Solde MB Coins	Disponible
+Vidéos postées	Cette semaine
+Gains cumulés	Total MB Coins gagnés
+Boutiques suivies	Liste
+Boutiques likées	Liste
+Recommandations	Personnalisées
+4.4 Dashboard Livreur
+Indicateur	Description
+Missions	En cours
+Gains	Mois en cours
+Note	Moyenne
+Livraisons	Total
+5. NOUVELLES TABLES
+Table	Description
+videos	Vidéos postées (réels)
+video_likes	Likes sur les vidéos
+video_comments	Commentaires
+video_views	Vues quotidiennes
+mb_transactions	Transactions MB Coins
+mb_products	Produits MB Shop
+shop_banners	Bannières boutique
+admin_chats	Conversations admin-client
+admin_messages	Messages admin-client
+product_variants	Variantes produits
+variant_stock	Stock par variante
+shop_followers	Abonnés boutique
+shop_likes	Likes boutique
+order_qr_codes	QR codes commandes
+shop_stories	Stories des boutiques
+6. ROUTES API - NOUVEAUTÉS
+Boutiques - Abonnements & Likes
+text
+POST   /api/shops/{id}/follow     - S'abonner
+DELETE /api/shops/{id}/follow     - Se désabonner
+GET    /api/my-followed-shops     - Boutiques suivies
+POST   /api/shops/{id}/like       - Liker boutique
+DELETE /api/shops/{id}/like       - Retirer like
+GET    /api/shops/{id}/followers  - Liste abonnés (admin/shop)
+Commandes - QR Code
+text
+GET    /api/orders/{id}/qr-code   - Générer QR code
+POST   /api/delivery/scan-qr      - Scanne QR code (livreur)
+GET    /api/orders/{id}/pin       - Récupérer PIN (client)
+Publicités Boutique
+text
+GET    /api/shops/{id}/banners    - Bannières boutique
+POST   /api/shops/banners         - Créer bannière
+PUT    /api/shops/banners/{id}    - Modifier
+DELETE /api/shops/banners/{id}    - Supprimer
+GET    /api/my-banners            - Mes bannières
+Stories Boutique
+text
+GET    /api/shops/{id}/stories    - Stories boutique (abonnés seulement)
+POST   /api/shops/stories         - Créer story (boutique certifiée)
+DELETE /api/shops/stories/{id}    - Supprimer story
+GET    /api/my-stories            - Mes stories
+GET    /api/feed/stories          - Feed stories des boutiques suivies
+7. FLUX COMPLET
+text
+1. Client s'inscrit
+2. Client peut s'abonner/liker des boutiques
+3. Client regarde des vidéos (gagne MB Coins)
+4. Client publie une vidéo (1/semaine)
+5. Client accumule MB Coins
+6. Client achète produit (espèces ou MB Coins)
+          ↓
+     Commande validée
+     → Génération PIN (6 chiffres)
+     → Génération QR code unique
+          ↓
+     Admin/Commerçant assigne livreur
+          ↓
+     Livreur reçoit mission
+          ↓
+     Client suit livreur (GPS)
+          ↓
+     Livreur arrive chez client
+     Client montre QR code OU donne PIN
+     Livreur scanne OU entre PIN
+          ↓
+     Validation automatique
+          ↓
+     Client reçoit notification si oublie
+          ↓
+     Client note livreur
+8. RÈGLES DE GESTION
+8.1 Boutiques
+Pas de boutique validée = pas de produit
+
+Admin doit valider TOUTE boutique avant vente
+
+Boutique peut être certifiée (payant, 12 mois)
+
+On peut s'abonner à une boutique
+
+On peut liker une boutique (1 like max par client)
+
+8.2 Produits
+Obligatoirement liés à une boutique
+
+Variantes (taille, couleur, stock)
+
+Boutique non active → produits cachés
+
+8.3 Commandes
+PIN à 6 chiffres (expire 48h)
+
+QR code généré automatiquement
+
+5 tentatives PIN max
+
+Double validation client + livreur
+
+8.4 Vidéos
+Client : 1 vidéo/semaine
+
+Boutique certifiée : illimité
+
+Boutique non certifiée : 3 vidéos/semaine
+
+1000 vues = 100 MB Coins
+
+8.5 Publicités Boutique
+Créées et gérées par la boutique
+
+Apparaissent UNIQUEMENT sur leur page
+
+Validées par admin
+
+Payantes pour la boutique
+
+9. ORDRE DE DÉVELOPPEMENT
+Phase	Contenu
+Phase 1	Authentification, Utilisateurs, Rôles
+Phase 2	Boutiques (CRUD, validation admin)
+Phase 3	Abonnements et likes boutiques
+Phase 4	Catégories
+Phase 5	Produits + Variantes (taille/couleur/stock)
+Phase 6	Panier, Commandes
+Phase 7	PIN (6 chiffres) + QR code
+Phase 8	Livraison, GPS, Chat client-livreur
+Phase 9	Vidéos (réels) - likes, commentaires, vues
+Phase 10	MB Coins, gains, boutique MB
+Phase 11	Publicités boutique
+Phase 12	Chat admin-client
+Phase 13	Dashboard admin complet,
+Phase 14	Centres d'intérêt & Habitudes personnalisées,
+Phase 15	Tests & Optimisations
+Phase 16	Déploiement
+
+10. CENTRES D'INTÉRÊT & HABITUDES PERSONNALISÉES
+10.1 Onboarding - Sélection des intérêts
+Étape	Description
+1. Inscription terminée	L'utilisateur arrive sur l'écran de sélection
+2. Présentation catégories	Liste des catégories disponibles avec icônes
+3. Sélection multiple	L'utilisateur coche ses centres d'intérêt (minimum 3)
+4. Niveau d'intérêt	Pour chaque catégorie : 1 (Peu) à 5 (Passionné)
+5. Validation	Enregistrement des préférences
+6. Accueil personnalisé	Page d'accueil adaptée aux choix
+
+Règles de sélection :
+- Minimum 3 catégories obligatoires
+- Maximum 10 catégories
+- Niveau d'intérêt obligatoire pour chaque catégorie
+- Possibilité de modifier plus tard dans les paramètres
+
+10.2 Page d'Accueil Personnalisée
+Élément	Description
+Produits recommandés	Basés sur les centres d'intérêt + habitudes
+Boutiques suggérées	Correspondant aux catégories favorites
+Vidéos pertinentes	Contenu aligné avec les préférences
+Promotions ciblées	Offres des catégories d'intérêt
+Recherche intelligente	Suggestions basées sur l'historique
+
+Algorithme de recommandation :
+1. 70% basé sur les centres d'intérêt déclarés
+2. 20% basé sur les habitudes de consultation
+3. 10% basé sur la popularité générale
+
+10.3 Suivi des Habitudes
+Type d'action suivi	Description
+Vue	Produit, boutique, catégorie, vidéo
+Recherche	Terme recherché + résultats
+Clic	Position dans les résultats
+Achat	Produit acheté + montant
+Like	Contenu aimé
+Partage	Contenu partagé
+Bookmark	Contenu sauvegardé
+
+Données collectées :
+- Timestamp de chaque action
+- Contexte (page, section, position)
+- Métadonnées (durée vidéo, prix, etc.)
+- Session utilisateur
+- Informations techniques (IP, user agent)
+
+10.4 Analyse et Apprentissage
+Méthode	Description
+Analyse temporelle	Heures/jours de plus grande activité
+Analyse comportementale	Types de produits consultés
+Analyse préférentielle	Catégories favorites
+Analyse d'achat	Panier moyen, fréquence
+
+Machine Learning :
+- Similarité entre utilisateurs
+- Filtrage collaboratif
+- Analyse des patterns
+- Prédiction des intérêts
+
+10.5 Recommandations Intelligentes
+Type de recommandation	Description
+Produits similaires	Même catégorie ou caractéristiques
+Produits complémentaires	Achats fréquents associés
+Tendances personnelles	Basées sur l'historique
+Découvertes	Nouvelles catégories potentielles
+
+Facteurs de scoring :
+- Poids catégorie d'intérêt (1-5)
+- Fréquence de consultation
+- Temps passé sur la page
+- Actions de conversion
+- Similarité avec autres utilisateurs
+
+10.6 Table de Bord Utilisateur
+Métrique	Description
+Centres d'intérêt	Liste avec niveaux
+Habitudes récentes	Dernières actions
+Recommandations	Produits/boutiques suggérés
+Statistiques	Temps passé, catégories vues
+Préférences	Paramètres personnalisables
+
+10.7 Nouvelles Tables
+Table	Description
+user_interests	Centres d'intérêt utilisateurs
+user_habit_trackers	Suivi des habitudes
+recommendation_scores	Scores de recommandation
+user_preferences	Préférences détaillées
+
+Structure user_interests :
+- user_id
+- category_id  
+- priority_level (1-5)
+- is_active
+- selected_at
+- metadata (préférences spécifiques)
+
+Structure user_habit_trackers :
+- user_id
+- action_type (view, search, click, purchase, like, share, bookmark)
+- entity_type (product, shop, category, video)
+- entity_id
+- metadata
+- action_time
+- session_id
+- context
+
+10.8 API - Centres d'Intérêt
+text
+GET    /api/user-interests              - Lister les intérêts
+POST   /api/user-interests              - Ajouter un intérêt
+PUT    /api/user-interests/{id}         - Modifier un intérêt
+DELETE /api/user-interests/{id}         - Supprimer un intérêt
+POST   /api/user-interests/select-multiple - Sélection multiple (onboarding)
+GET    /api/user-interests/recommended-categories - Catégories suggérées
+GET    /api/user-interests/available-categories - Catégories disponibles
+GET    /api/user-interests/popular       - Catégories populaires
+GET    /api/user-interests/stats         - Statistiques des intérêts
+
+10.9 API - Habitudes Utilisateurs
+text
+POST   /api/user-habits/track           - Enregistrer une action
+GET    /api/user-habits/view-history     - Historique des vues
+GET    /api/user-habits/most-viewed-categories - Catégories les plus vues
+GET    /api/user-habits/most-viewed-products - Produits les plus vus
+GET    /api/user-habits/search-history    - Historique des recherches
+GET    /api/user-habits/purchase-history - Historique des achats
+GET    /api/user-habits/recommended-products - Produits recommandés
+GET    /api/user-habits/recommended-shops - Boutiques recommandées
+GET    /api/user-habits/stats             - Statistiques des habitudes
+
+10.10 API - Produits Personnalisés
+text
+GET    /api/products/recommended        - Page d'accueil personnalisée
+GET    /api/products/trending-by-interests - Tendance par intérêts
+GET    /api/products/{id}/similar        - Produits similaires
+
+10.11 Flux d'Utilisation
+text
+1. Utilisateur s'inscrit
+2. Onboarding : sélection des centres d'intérêt
+3. Accès à la page d'accueil personnalisée
+4. Navigation : tracking automatique des actions
+5. Recommandations basées sur les intérêts + habitudes
+6. Apprentissage continu : amélioration des suggestions
+7. Modification possible des préférences à tout moment
+
+10.12 Avantages pour l'Utilisateur
+Bénéfice	Description
+Expérience personnalisée	Contenu adapté aux goûts
+Gain de temps	Trouve rapidement ce qui l'intéresse
+Découvertes	Nouveaux produits/boutiques pertinents
+Fidélisation	Plus l'utilisateur utilise, plus c'est pertinent
+Satisfaction	Meilleure expérience utilisateur
+
+10.13 Avantages pour la Plateforme
+Bénéfice	Description
+Conversion augmentée	Recommandations pertinentes = plus d'achats
+Rétention améliorée	Expérience personnalisée = fidélisation
+Données précieuses	Comportement utilisateur pour optimisation
+Marketing ciblé	Promotions efficaces par segment
+Avantage concurrentiel	Différenciation par personnalisation
+
+10.14 Confidentialité et RGPD
+Point	Description
+Consentement explicite	Pour le suivi des habitudes
+Transparence	Informations claires sur les données
+Contrôle utilisateur	Possibilité de supprimer l'historique
+Anonymisation	Données agrégées pour statistiques
+Sécurité	Protection des données personnelles
+
+10.15 Règles de Gestion
+Règle	Description
+Minimum 3 intérêts	Obligatoire pour l'onboarding
+Modification possible	À tout moment dans les paramètres
+Historique conservé	90 jours par défaut
+Anonymisation après	Données agrégées après 1 an
+Export disponible	Utilisateur peut télécharger ses données

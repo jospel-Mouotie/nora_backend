@@ -1,0 +1,1748 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Nora Marketplace API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "nora-api-exporter",
+		"_collection_link": "https://nora-marketplace.com/api-docs"
+	},
+	"item": [
+		{
+			"name": "Authentification",
+			"item": [
+				{
+					"name": "Inscription",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"customer\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "register"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Connexion",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Déconnexion",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "logout"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Utilisateurs",
+			"item": [
+				{
+					"name": "Profil utilisateur",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/user",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "user"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mettre à jour le profil",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Updated\",\n  \"phone\": \"+33687654321\",\n  \"address\": \"456 Avenue des Champs\",\n  \"city\": \"Paris\",\n  \"postal_code\": \"75008\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/user",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "user"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mettre à jour la photo de profil",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "profile_picture",
+									"type": "file",
+									"src": "/C:/path/to/profile.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/user/profile-picture",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "user", "profile-picture"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Boutiques",
+			"item": [
+				{
+					"name": "Lister les boutiques",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/shops?limit=20&search=mode&category_id=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shops"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "search",
+									"value": "mode"
+								},
+								{
+									"key": "category_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Créer une boutique",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Ma Boutique\",\n  \"description\": \"Description de ma boutique\",\n  \"address\": \"123 Rue Principale\",\n  \"city\": \"Paris\",\n  \"postal_code\": \"75001\",\n  \"phone\": \"+33612345678\",\n  \"email\": \"contact@ma-boutique.com\",\n  \"category_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/shops",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shops"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Détails d'une boutique",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/shops/{{shopId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shops", "{{shopId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Suivre une boutique",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/shops/{{shopId}}/follow",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shops", "{{shopId}}", "follow"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ne plus suivre une boutique",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/shops/{{shopId}}/follow",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shops", "{{shopId}}", "follow"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Liker une boutique",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/shops/{{shopId}}/like",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shops", "{{shopId}}", "like"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Catégories",
+			"item": [
+				{
+					"name": "Lister les catégories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "categories"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Produits",
+			"item": [
+				{
+					"name": "Lister les produits",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/products?limit=20&search=tshirt&category_id=1&min_price=10&max_price=100&sort=price_asc",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "search",
+									"value": "tshirt"
+								},
+								{
+									"key": "category_id",
+									"value": "1"
+								},
+								{
+									"key": "min_price",
+									"value": "10"
+								},
+								{
+									"key": "max_price",
+									"value": "100"
+								},
+								{
+									"key": "sort",
+									"value": "price_asc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Créer un produit",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Nouveau Produit\",\n  \"description\": \"Description du produit\",\n  \"price\": 49.99,\n  \"sku\": \"PROD-001\",\n  \"stock\": 100,\n  \"category_id\": 1,\n  \"images\": [\"image1.jpg\", \"image2.jpg\"],\n  \"variants\": [\n    {\n      \"size\": \"S\",\n      \"color\": \"Rouge\",\n      \"stock\": 25,\n      \"price\": 49.99\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Détails d'un produit",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/products/{{productId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products", "{{productId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Produits par catégorie",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/products/by-category/{{categoryId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products", "by-category", "{{categoryId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Produits en promotion",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/products/promotions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "products", "promotions"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Panier",
+			"item": [
+				{
+					"name": "Voir le panier",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/cart",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ajouter au panier",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"product_id\": 1,\n  \"quantity\": 2,\n  \"variant_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cart/add",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart", "add"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mettre à jour la quantité",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quantity\": 3\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/cart/update/{{itemId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart", "update", "{{itemId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Supprimer du panier",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/cart/remove/{{itemId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart", "remove", "{{itemId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vider le panier",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/cart/clear",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "cart", "clear"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Commandes",
+			"item": [
+				{
+					"name": "Créer une commande",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"delivery_address\": {\n    \"address\": \"123 Rue de la Paix\",\n    \"city\": \"Paris\",\n    \"postal_code\": \"75001\",\n    \"country\": \"France\",\n    \"phone\": \"+33612345678\"\n  },\n  \"payment_method\": \"cash\",\n  \"notes\": \"Livraison après 18h\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lister les commandes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders?status=pending&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders"],
+							"query": [
+								{
+									"key": "status",
+									"value": "pending"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Détails d'une commande",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "{{orderId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mettre à jour le statut",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"confirmed\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/{{orderId}}/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "orders", "{{orderId}}", "status"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Livraisons",
+			"item": [
+				{
+					"name": "Créer une livraison",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": 1,\n  \"delivery_person_id\": 2,\n  \"pickup_address\": {\n    \"address\": \"123 Rue de la Boutique\",\n    \"city\": \"Paris\",\n    \"latitude\": 48.8566,\n    \"longitude\": 2.3522\n  },\n  \"delivery_address\": {\n    \"address\": \"456 Rue du Client\",\n    \"city\": \"Paris\",\n    \"latitude\": 48.8584,\n    \"longitude\": 2.2945\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/deliveries",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deliveries"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Lister les livraisons",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/deliveries",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deliveries"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mettre à jour la position",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"current_latitude\": 48.8570,\n  \"current_longitude\": 2.3500\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/deliveries/{{deliveryId}}/location",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deliveries", "{{deliveryId}}", "location"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Chat Client-Livreur",
+			"item": [
+				{
+					"name": "Messages d'une livraison",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/chat/delivery/{{deliveryId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "chat", "delivery", "{{deliveryId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Envoyer un message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"content\": \"Merci pour la livraison rapide !\",\n  \"type\": \"text\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/chat/delivery/{{deliveryId}}/send",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "chat", "delivery", "{{deliveryId}}", "send"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Nombre de messages non lus",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/chat/unread-count",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "chat", "unread-count"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Vidéos (Réels)",
+			"item": [
+				{
+					"name": "Lister les vidéos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/videos?limit=20&category=fashion&shop_id=1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "videos"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "category",
+									"value": "fashion"
+								},
+								{
+									"key": "shop_id",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload d'une vidéo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "video",
+									"type": "file",
+									"src": "/C:/path/to/video.mp4"
+								},
+								{
+									"key": "thumbnail",
+									"type": "file",
+									"src": "/C:/path/to/thumbnail.jpg"
+								},
+								{
+									"key": "title",
+									"value": "Nouvelle collection été",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Découvrez nos nouveaux vêtements",
+									"type": "text"
+								},
+								{
+									"key": "shop_id",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/videos/upload",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "videos", "upload"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Vidéos tendances",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/videos/trending",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "videos", "trending"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mes vidéos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/videos/my",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "videos", "my"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Enregistrer une vue",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"duration\": 15.5\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/videos/{{videoId}}/view",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "videos", "{{videoId}}", "view"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Liker/Unliker une vidéo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/videos/{{videoId}}/like",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "videos", "{{videoId}}", "like"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "MB Coins",
+			"item": [
+				{
+					"name": "Solde MB Coins",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-coins/balance",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-coins", "balance"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Historique des transactions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-coins/transactions?type=credit&start_date=2026-05-01&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-coins", "transactions"],
+							"query": [
+								{
+									"key": "type",
+									"value": "credit"
+								},
+								{
+									"key": "start_date",
+									"value": "2026-05-01"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Demander un retrait",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 100.00,\n  \"method\": \"bank_transfer\",\n  \"details\": {\n    \"account_name\": \"John Doe\",\n    \"account_number\": \"FR7630006000011234567890189\",\n    \"bank_name\": \"BNP Paribas\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-coins/withdraw",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-coins", "withdraw"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Classement des utilisateurs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-coins/leaderboard?period=week",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-coins", "leaderboard"],
+							"query": [
+								{
+									"key": "period",
+									"value": "week"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Récompenses MB",
+			"item": [
+				{
+					"name": "Lister les récompenses",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-rewards?status=available&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-rewards"],
+							"query": [
+								{
+									"key": "status",
+									"value": "available"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Réclamer une récompense",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-rewards/{{rewardId}}/claim",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-rewards", "{{rewardId}}", "claim"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Récompenses disponibles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-rewards/available",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-rewards", "available"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Boutique MB",
+			"item": [
+				{
+					"name": "Lister les boutiques MB",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-shops",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-shops"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Articles d'une boutique MB",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-shops/{{shopId}}/items?category=badges&featured=true",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-shops", "{{shopId}}", "items"],
+							"query": [
+								{
+									"key": "category",
+									"value": "badges"
+								},
+								{
+									"key": "featured",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Acheter un article",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quantity\": 1,\n  \"delivery_address\": {\n    \"address\": \"123 Rue de la Paix\",\n    \"city\": \"Paris\",\n    \"postal_code\": \"75001\",\n    \"country\": \"France\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-shop-items/{{itemId}}/purchase",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-shop-items", "{{itemId}}", "purchase"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mes achats MB",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-shop-purchases?status=completed&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-shop-purchases"],
+							"query": [
+								{
+									"key": "status",
+									"value": "completed"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Articles tendances",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mb-shop-items/trending?limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mb-shop-items", "trending"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Publicités",
+			"item": [
+				{
+					"name": "Lister les publicités",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/ads?shop_id=1&type=banner&status=active",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ads"],
+							"query": [
+								{
+									"key": "shop_id",
+									"value": "1"
+								},
+								{
+									"key": "type",
+									"value": "banner"
+								},
+								{
+									"key": "status",
+									"value": "active"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Créer une publicité",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "Promotion Été",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "-30% sur toute la collection",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "/C:/path/to/ad-image.jpg"
+								},
+								{
+									"key": "link_url",
+									"value": "https://example.com/promo",
+									"type": "text"
+								},
+								{
+									"key": "type",
+									"value": "banner",
+									"type": "text"
+								},
+								{
+									"key": "position",
+									"value": "top",
+									"type": "text"
+								},
+								{
+									"key": "budget",
+									"value": "1000.00",
+									"type": "text"
+								},
+								{
+									"key": "cost_per_click",
+									"value": "0.50",
+									"type": "text"
+								},
+								{
+									"key": "cost_per_impression",
+									"value": "0.05",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/ads",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ads"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Publicités actives",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/ads/active?position=top",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ads", "active"],
+							"query": [
+								{
+									"key": "position",
+									"value": "top"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Enregistrer une impression",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/ads/{{adId}}/impression",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ads", "{{adId}}", "impression"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Enregistrer un clic",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/ads/{{adId}}/click",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ads", "{{adId}}", "click"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Chat Admin",
+			"item": [
+				{
+					"name": "Messages du chat admin",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-chat?unread_only=true&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-chat"],
+							"query": [
+								{
+									"key": "unread_only",
+									"value": "true"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Conversation avec un utilisateur",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-chat/conversation/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-chat", "conversation", "{{userId}}"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Envoyer un message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "user_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "Bonjour, comment puis-je vous aider ?",
+									"type": "text"
+								},
+								{
+									"key": "attachment",
+									"type": "file",
+									"src": "/C:/path/to/attachment.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-chat/send",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-chat", "send"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Conversations récentes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin-chat/recent-conversations?limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin-chat", "recent-conversations"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dashboard Admin",
+			"item": [
+				{
+					"name": "Dashboard principal",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/dashboard?period=7",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "dashboard"],
+							"query": [
+								{
+									"key": "period",
+									"value": "7"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Statistiques détaillées",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/dashboard/detailed-stats?period=30",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "dashboard", "detailed-stats"],
+							"query": [
+								{
+									"key": "period",
+									"value": "30"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Statistiques utilisateurs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/dashboard/users?period=30",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "dashboard", "users"],
+							"query": [
+								{
+									"key": "period",
+									"value": "30"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Statistiques système",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/dashboard/system",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "dashboard", "system"]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "shopId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "productId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "deliveryId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "videoId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "rewardId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "itemId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "adId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "1",
+			"type": "string"
+		},
+		{
+			"key": "categoryId",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-refresh token if expired",
+					"if (pm.variables.get('token') && pm.request.headers.has('Authorization')) {",
+					"  const token = pm.variables.get('token');",
+					"  pm.request.headers.upsert({",
+					"    key: 'Authorization',",
+					"    value: 'Bearer ' + token",
+					"  });",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Save token from login response",
+					"if (pm.response.code === 200 && pm.request.url.path.includes('/login')) {",
+					"  const response = pm.response.json();",
+					"  if (response.token) {",
+					"    pm.variables.set('token', response.token);",
+					"  }",
+					"}",
+					"",
+					"// Common tests",
+					"pm.test('Status code is successful', function () {",
+					"  pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+					"});",
+					"",
+					"pm.test('Response has data', function () {",
+					"  const responseJson = pm.response.json();",
+					"  pm.expect(responseJson).to.be.an('object');",
+					"});",
+					"",
+					"pm.test('Response time is less than 2000ms', function () {",
+					"  pm.expect(pm.response.responseTime).to.be.below(2000);",
+					"});"
+				]
+			}
+		}
+	]
+}

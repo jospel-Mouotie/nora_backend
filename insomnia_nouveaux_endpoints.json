@@ -1,0 +1,251 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-05-26T12:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.2.2",
+  "resources": [
+    {
+      "_id": "wrk_nora_v3",
+      "parentId": null,
+      "modified": 1680000000000,
+      "created": 1680000000000,
+      "name": "Nora API - Nouveaux Endpoints",
+      "description": "",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "env_nora_v3",
+      "parentId": "wrk_nora_v3",
+      "modified": 1680000000000,
+      "created": 1680000000000,
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://127.0.0.1:8000/api",
+        "token": "ton_token_bearer_ici"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "token"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1680000000000,
+      "_type": "environment"
+    },
+    {
+      "_id": "req_cert_request",
+      "parentId": "wrk_nora_v3",
+      "modified": 1680000000000,
+      "created": 1680000000000,
+      "url": "{{ _.base_url }}/shops/1/request-certification",
+      "name": "1. Demander Certification",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": -1680000000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_cert_pay",
+      "parentId": "wrk_nora_v3",
+      "modified": 1680000000000,
+      "created": 1680000000000,
+      "url": "{{ _.base_url }}/shops/certifications/1/pay",
+      "name": "2. Payer Certification",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"payment_method\": \"MTN Mobile Money\",\n  \"transaction_id\": \"TXN123456789\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": -1670000000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_cert_pending",
+      "parentId": "wrk_nora_v3",
+      "modified": 1680000000000,
+      "created": 1680000000000,
+      "url": "{{ _.base_url }}/admin/certifications/pending",
+      "name": "3. Admin - Certifications en attente",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": -1660000000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_cert_val",
+      "parentId": "wrk_nora_v3",
+      "modified": 1680000000000,
+      "created": 1680000000000,
+      "url": "{{ _.base_url }}/admin/certifications/1/validate",
+      "name": "4. Admin - Valider Certification",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"admin_comment\": \"Tout est en ordre\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": -1650000000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_rev_store",
+      "parentId": "wrk_nora_v3",
+      "modified": 1680000000000,
+      "created": 1680000000000,
+      "url": "{{ _.base_url }}/reviews",
+      "name": "5. Ajouter un Avis (Review)",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"reviewable_id\": 1,\n  \"reviewable_type\": \"shop\",\n  \"rating\": 5,\n  \"comment\": \"Super boutique !\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": -1640000000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_rev_get",
+      "parentId": "wrk_nora_v3",
+      "modified": 1680000000000,
+      "created": 1680000000000,
+      "url": "{{ _.base_url }}/reviews?reviewable_id=1&reviewable_type=shop",
+      "name": "6. Obtenir les Avis",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": -1630000000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_notif_get",
+      "parentId": "wrk_nora_v3",
+      "modified": 1680000000000,
+      "created": 1680000000000,
+      "url": "{{ _.base_url }}/notifications",
+      "name": "7. Mes Notifications Internes",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": -1620000000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_notif_read",
+      "parentId": "wrk_nora_v3",
+      "modified": 1680000000000,
+      "created": 1680000000000,
+      "url": "{{ _.base_url }}/notifications/read-all",
+      "name": "8. Marquer tout lu (Notifs)",
+      "description": "",
+      "method": "PUT",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.token }}" }
+      ],
+      "authentication": {},
+      "metaSortKey": -1610000000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    }
+  ]
+}

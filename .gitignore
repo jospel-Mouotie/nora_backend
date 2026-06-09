@@ -1,0 +1,41 @@
+
+# --- Dépendances et Packages ---
+/node_modules
+/vendor
+/nora 
+/NoraKotlin
+
+# --- Fichiers d'environnement et Secrets ---
+.env
+.env.backup
+.env.production
+*.key
+
+# --- Caches, Logs et Fichiers générés ---
+.phpunit.result.cache
+/bootstrap/cache/*
+/storage/*.key
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+
+# --- Uploads et Fichiers utilisateurs ---
+/storage/app/public/*
+
+# --- Outils de développement et IDE ---
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+Homestead.json
+Homestead.yaml
+.env.docker
+
+# --- Système d'exploitation ---
+.DS_Store
+Thumbs.db

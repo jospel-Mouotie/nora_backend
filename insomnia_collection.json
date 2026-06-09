@@ -1,0 +1,796 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-05-16T03:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v8.6.0",
+  "resources": [
+    {
+      "_id": "req_auth_register",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Register",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/register",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"client\"\n}"
+      }
+    },
+    {
+      "_id": "req_auth_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/login",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"marie@client.com\",\n  \"password\": \"password\"\n}"
+      }
+    },
+    {
+      "_id": "req_auth_logout",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Logout",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/logout",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    },
+    {
+      "_id": "req_auth_me",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Get Current User",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/me",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_auth_user",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Get User",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/user",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_cart_index",
+      "_type": "request",
+      "parentId": "fld_cart",
+      "name": "Get Cart",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/cart",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_cart_add",
+      "_type": "request",
+      "parentId": "fld_cart",
+      "name": "Add Item to Cart",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/cart/add",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"product_variant_id\": 1,\n  \"quantity\": 1\n}"
+      }
+    },
+    {
+      "_id": "req_cart_update",
+      "_type": "request",
+      "parentId": "fld_cart",
+      "name": "Update Cart Item",
+      "method": "PUT",
+      "url": "{{baseUrl}}/api/cart/items/1",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"quantity\": 2\n}"
+      }
+    },
+    {
+      "_id": "req_cart_remove",
+      "_type": "request",
+      "parentId": "fld_cart",
+      "name": "Remove Cart Item",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/api/cart/items/1",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_cart_clear",
+      "_type": "request",
+      "parentId": "fld_cart",
+      "name": "Clear Cart",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/api/cart",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_cart_count",
+      "_type": "request",
+      "parentId": "fld_cart",
+      "name": "Get Cart Count",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/cart/count",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_cart_validate",
+      "_type": "request",
+      "parentId": "fld_cart",
+      "name": "Validate Cart",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/cart/validate",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ]
+    },
+    {
+      "_id": "req_categories_index",
+      "_type": "request",
+      "parentId": "fld_categories",
+      "name": "Get All Categories",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/categories"
+    },
+    {
+      "_id": "req_categories_tree",
+      "_type": "request",
+      "parentId": "fld_categories",
+      "name": "Get Category Tree",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/categories/tree"
+    },
+    {
+      "_id": "req_categories_show",
+      "_type": "request",
+      "parentId": "fld_categories",
+      "name": "Get Category by ID",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/categories/1"
+    },
+    {
+      "_id": "req_categories_children",
+      "_type": "request",
+      "parentId": "fld_categories",
+      "name": "Get Category Children",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/categories/1/children"
+    },
+    {
+      "_id": "req_products_index",
+      "_type": "request",
+      "parentId": "fld_products",
+      "name": "Get All Products",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/products"
+    },
+    {
+      "_id": "req_products_show",
+      "_type": "request",
+      "parentId": "fld_products",
+      "name": "Get Product by ID",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/products/1"
+    },
+    {
+      "_id": "req_products_by_shop",
+      "_type": "request",
+      "parentId": "fld_products",
+      "name": "Get Products by Shop",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/products/by-shop/1"
+    },
+    {
+      "_id": "req_products_by_category",
+      "_type": "request",
+      "parentId": "fld_products",
+      "name": "Get Products by Category",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/products/by-category/1"
+    },
+    {
+      "_id": "req_products_promotions",
+      "_type": "request",
+      "parentId": "fld_products",
+      "name": "Get Promotions",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/products/promotions"
+    },
+    {
+      "_id": "req_products_recommended",
+      "_type": "request",
+      "parentId": "fld_products",
+      "name": "Get Recommended Products",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/products/recommended"
+    },
+    {
+      "_id": "req_shops_index",
+      "_type": "request",
+      "parentId": "fld_shops",
+      "name": "Get All Shops",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/shops"
+    },
+    {
+      "_id": "req_shops_show",
+      "_type": "request",
+      "parentId": "fld_shops",
+      "name": "Get Shop by ID",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/shops/1"
+    },
+    {
+      "_id": "req_shops_follow",
+      "_type": "request",
+      "parentId": "fld_shops",
+      "name": "Follow Shop",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/shops/1/follow",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_shops_unfollow",
+      "_type": "request",
+      "parentId": "fld_shops",
+      "name": "Unfollow Shop",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/api/shops/1/follow",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_shops_like",
+      "_type": "request",
+      "parentId": "fld_shops",
+      "name": "Like Shop",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/shops/1/like",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_shops_unlike",
+      "_type": "request",
+      "parentId": "fld_shops",
+      "name": "Unlike Shop",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/api/shops/1/like",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_videos_index",
+      "_type": "request",
+      "parentId": "fld_videos",
+      "name": "Get All Videos",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/videos"
+    },
+    {
+      "_id": "req_videos_trending",
+      "_type": "request",
+      "parentId": "fld_videos",
+      "name": "Get Trending Videos",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/videos/trending"
+    },
+    {
+      "_id": "req_videos_show",
+      "_type": "request",
+      "parentId": "fld_videos",
+      "name": "Get Video by ID",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/videos/1"
+    },
+    {
+      "_id": "req_videos_upload",
+      "_type": "request",
+      "parentId": "fld_videos",
+      "name": "Upload Video",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/videos/upload",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_videos_like",
+      "_type": "request",
+      "parentId": "fld_videos",
+      "name": "Like Video",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/videos/1/like",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_videos_comment",
+      "_type": "request",
+      "parentId": "fld_videos",
+      "name": "Add Comment to Video",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/videos/1/comments",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"content\": \"Great video!\"\n}"
+      }
+    },
+    {
+      "_id": "req_orders_index",
+      "_type": "request",
+      "parentId": "fld_orders",
+      "name": "Get My Orders",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/orders",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_orders_create",
+      "_type": "request",
+      "parentId": "fld_orders",
+      "name": "Create Order from Cart",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/orders/create",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"delivery_address\": \"Douala, Bonanjo, Rue 123\",\n  \"notes\": \"Livraison rapide s'il vous plaît\"\n}"
+      }
+    },
+    {
+      "_id": "req_orders_show",
+      "_type": "request",
+      "parentId": "fld_orders",
+      "name": "Get Order by ID",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/orders/1",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_orders_confirm",
+      "_type": "request",
+      "parentId": "fld_orders",
+      "name": "Confirm Order",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/orders/1/confirm",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_orders_cancel",
+      "_type": "request",
+      "parentId": "fld_orders",
+      "name": "Cancel Order",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/orders/1/cancel",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_mb_coins_balance",
+      "_type": "request",
+      "parentId": "fld_mb_coins",
+      "name": "Get MB Coins Balance",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/mb-coins/balance",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_mb_coins_transactions",
+      "_type": "request",
+      "parentId": "fld_mb_coins",
+      "name": "Get MB Coins Transactions",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/mb-coins/transactions",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_mb_coins_leaderboard",
+      "_type": "request",
+      "parentId": "fld_mb_coins",
+      "name": "Get MB Coins Leaderboard",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/mb-coins/leaderboard"
+    },
+    {
+      "_id": "req_mb_shops_index",
+      "_type": "request",
+      "parentId": "fld_mb_shop",
+      "name": "Get MB Shops",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/mb-shops"
+    },
+    {
+      "_id": "req_mb_shops_items",
+      "_type": "request",
+      "parentId": "fld_mb_shop",
+      "name": "Get MB Shop Items",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/mb-shops/1/items"
+    },
+    {
+      "_id": "req_mb_shops_purchase",
+      "_type": "request",
+      "parentId": "fld_mb_shop",
+      "name": "Purchase MB Shop Item",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/mb-shop-items/1/purchase",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_ads_index",
+      "_type": "request",
+      "parentId": "fld_ads",
+      "name": "Get All Ads",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/ads"
+    },
+    {
+      "_id": "req_ads_active",
+      "_type": "request",
+      "parentId": "fld_ads",
+      "name": "Get Active Ads",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/ads/active"
+    },
+    {
+      "_id": "req_ads_targeted",
+      "_type": "request",
+      "parentId": "fld_ads",
+      "name": "Get Targeted Ads",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/ads/targeted"
+    },
+    {
+      "_id": "req_dashboard_index",
+      "_type": "request",
+      "parentId": "fld_dashboard",
+      "name": "Get Dashboard Stats",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/dashboard",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_dashboard_detailed",
+      "_type": "request",
+      "parentId": "fld_dashboard",
+      "name": "Get Detailed Stats",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/dashboard/detailed-stats",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_user_interests_index",
+      "_type": "request",
+      "parentId": "fld_user_interests",
+      "name": "Get User Interests",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/user-interests",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "req_user_interests_store",
+      "_type": "request",
+      "parentId": "fld_user_interests",
+      "name": "Add User Interest",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/user-interests",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"category_id\": 1,\n  \"priority_level\": 5\n}"
+      }
+    },
+    {
+      "_id": "req_user_habits_track",
+      "_type": "request",
+      "parentId": "fld_user_habits",
+      "name": "Track User Action",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/user-habits/track",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"action_type\": \"view\",\n  \"entity_type\": \"product\",\n  \"entity_id\": 1\n}"
+      }
+    },
+    {
+      "_id": "req_user_habits_view_history",
+      "_type": "request",
+      "parentId": "fld_user_habits",
+      "name": "Get View History",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/user-habits/view-history",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{token}}"
+        }
+      ]
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "Authentication"
+    },
+    {
+      "_id": "fld_cart",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "Cart"
+    },
+    {
+      "_id": "fld_categories",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "Categories"
+    },
+    {
+      "_id": "fld_products",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "Products"
+    },
+    {
+      "_id": "fld_shops",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "Shops"
+    },
+    {
+      "_id": "fld_videos",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "Videos"
+    },
+    {
+      "_id": "fld_orders",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "Orders"
+    },
+    {
+      "_id": "fld_mb_coins",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "MB Coins"
+    },
+    {
+      "_id": "fld_mb_shop",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "MB Shop"
+    },
+    {
+      "_id": "fld_ads",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "Ads"
+    },
+    {
+      "_id": "fld_dashboard",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "Dashboard"
+    },
+    {
+      "_id": "fld_user_interests",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "User Interests"
+    },
+    {
+      "_id": "fld_user_habits",
+      "_type": "request_group",
+      "parentId": "wrk_nora_api",
+      "name": "User Habits"
+    },
+    {
+      "_id": "env_nora_api",
+      "_type": "environment",
+      "parentId": "wrk_nora_api",
+      "name": "Nora API",
+      "data": {
+        "baseUrl": "http://localhost:8000",
+        "token": ""
+      }
+    },
+    {
+      "_id": "wrk_nora_api",
+      "_type": "workspace",
+      "parentId": null,
+      "name": "Nora API"
+    }
+  ]
+}
