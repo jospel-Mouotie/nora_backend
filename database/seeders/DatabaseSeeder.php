@@ -48,8 +48,6 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             ShopSeeder::class,
             ProductSeeder::class,
-            VideoSeeder::class,
-            VideoInteractionSeeder::class,
         ]);
 
         // Données supplémentaires
