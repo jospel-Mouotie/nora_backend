@@ -10,8 +10,6 @@ echo "Optimisation des configurations de l'API..."
 php artisan config:cache
 php artisan route:cache
 
-# Démarrer PHP-FPM en arrière-plan
-php-fpm -D
 
 echo "Démarrage de Nginx pour l'API..."
 nginx -g "daemon off;"

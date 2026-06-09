@@ -8,7 +8,7 @@ MBOA SHOP est une plateforme e-commerce où tous les produits sont obligatoireme
 #	Acteur	Rôle
 1	Client	Achete, regarde des vidéos, gagne MB Coins, poste 1 vidéo/semaine, peut s'abonner aux boutiques
 2	Commerçant	Vends, catalogue gratuit, assigne livreur, poste vidéos, gère ses propres publicités
-3	Grossiste	Vends en gros, catalogue gratuit, assigne livreur, poste vidéos, gère ses propres publicités
+3	Grossiste	Vendsj en gros, catalogue gratuit, assigne livreur, poste vidéos, gère ses propres publicités
 4	Livreur	Livre, chat client, suivi GPS, scan QR code
 5	Admin	Gère tout, valide comptes et boutiques, commission, chat avec clients
 1.3 Règles Fondamentales
