@@ -91,6 +91,11 @@ class Order extends Model
         return $query->where('status', 'cancelled');
     }
 
+    public function scopeInDelivery($query)
+    {
+        return $query->where('status', 'in_delivery');
+    }
+
     public function scopePaid($query)
     {
         return $query->where('payment_status', 'paid');
@@ -130,6 +135,11 @@ class Order extends Model
     public function isCancelled()
     {
         return $this->status === 'cancelled';
+    }
+
+    public function isInDelivery()
+    {
+        return $this->status === 'in_delivery';
     }
 
     public function isPaid()
@@ -207,5 +217,21 @@ class Order extends Model
     public function scopeByOrderNumber($query, $orderNumber)
     {
         return $query->where('order_number', 'like', "%{$orderNumber}%");
+    }
+
+    // Static methods for generating order identifiers
+    public static function generateOrderNumber()
+    {
+        return 'ORD-' . strtoupper(uniqid()) . '-' . rand(1000, 9999);
+    }
+
+    public static function generatePin()
+    {
+        return str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
+    }
+
+    public static function generateQrCode()
+    {
+        return 'QR-' . strtoupper(uniqid()) . '-' . rand(10000, 99999);
     }
 }

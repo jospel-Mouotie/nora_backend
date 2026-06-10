@@ -194,6 +194,42 @@ class AuthController extends Controller
     }
 
     /**
+     * Enregistrer ou mettre à jour le token FCM de l'utilisateur
+     */
+    public function updateFcmToken(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'fcm_token' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = $request->user();
+        $user->update([
+            'fcm_token' => $request->fcm_token,
+            'fcm_token_updated_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'Token FCM mis à jour avec succès']);
+    }
+
+    /**
+     * Supprimer le token FCM (lors de la déconnexion)
+     */
+    public function removeFcmToken(Request $request)
+    {
+        $user = $request->user();
+        $user->update([
+            'fcm_token' => null,
+            'fcm_token_updated_at' => null,
+        ]);
+
+        return response()->json(['message' => 'Token FCM supprimé']);
+    }
+
+    /**
      * Obtenir les informations de l'utilisateur connecté
      */
     public function me(Request $request)

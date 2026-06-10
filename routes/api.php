@@ -100,6 +100,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/user', [AuthController::class, 'updateProfile']);
     Route::post('/user/profile-picture', [AuthController::class, 'updateProfilePicture']);
+    
+    // FCM Token Management
+    Route::post('/fcm-token', [AuthController::class, 'updateFcmToken']);
+    Route::delete('/fcm-token', [AuthController::class, 'removeFcmToken']);
 
     // Gestion des boutiques (création, modification, suppression)
     Route::post('/shops', [ShopController::class, 'store']);

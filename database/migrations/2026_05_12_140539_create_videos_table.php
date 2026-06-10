@@ -31,6 +31,9 @@ return new class extends Migration
             $table->json('metadata')->nullable(); // infos codec, bitrate, etc.
             $table->string('stream_url')->nullable(); // URL pour streaming HLS/DASH
             $table->string('processed_path')->nullable(); // vidéo optimisée pour streaming
+            $table->integer('views_count')->default(0);
+            $table->integer('likes_count')->default(0);
+            $table->integer('comments_count')->default(0);
             $table->timestamps();
             
             $table->index(['user_id', 'status']);

@@ -7,6 +7,8 @@ use App\Models\Video;
 use App\Models\VideoComment;
 use App\Models\VideoLike;
 use App\Models\VideoView;
+use App\Models\Shop;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +18,12 @@ use Illuminate\Support\Facades\Validator;
 
 class VideoController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     /**
      * Upload et créer une nouvelle vidéo
      */
@@ -87,6 +95,29 @@ class VideoController extends Controller
             $videoData = $video->toArray();
             $videoData['video_url'] = $video->video_url;
             $videoData['thumbnail_url'] = $video->thumbnail_url;
+
+            // 🔔 NOTIFICATION: Notifier les followers de la boutique
+            try {
+                if ($request->shop_id) {
+                    $shop = Shop::find($request->shop_id);
+                    if ($shop) {
+                        $followerIds = $shop->followers()->pluck('user_id')->toArray();
+                        if (!empty($followerIds)) {
+                            $this->notificationService->notifyNewVideo(
+                                $followerIds,
+                                $shop->name,
+                                $video->title
+                            );
+                            Log::info('Notifications vidéo envoyées:', [
+                                'followers_count' => count($followerIds),
+                                'video_id' => $video->id
+                            ]);
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning('Erreur notification followers vidéo: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'message' => 'Vidéo uploadée avec succès',
@@ -210,6 +241,7 @@ class VideoController extends Controller
     {
         $video = Video::findOrFail($id);
         $userId = auth()->id();
+        $user = auth()->user();
 
         $existingLike = VideoLike::where('video_id', $id)->where('user_id', $userId)->first();
 
@@ -220,6 +252,20 @@ class VideoController extends Controller
         } else {
             VideoLike::create(['video_id' => $id, 'user_id' => $userId]);
             $video->increment('likes_count');
+
+            // 🔔 NOTIFICATION: Notifier le créateur de la vidéo
+            try {
+                if ($video->user_id !== $userId) {
+                    $this->notificationService->notifyVideoLiked(
+                        $video->user_id,
+                        $user->name,
+                        $video->title
+                    );
+                }
+            } catch (\Exception $e) {
+                Log::warning('Erreur notification like vidéo: ' . $e->getMessage());
+            }
+
             return response()->json(['liked' => true, 'likes_count' => $video->likes_count]);
         }
     }
@@ -292,6 +338,7 @@ class VideoController extends Controller
         }
 
         $video = Video::findOrFail($id);
+        $user = auth()->user();
 
         $comment = VideoComment::create([
             'video_id' => $id,
@@ -301,6 +348,19 @@ class VideoController extends Controller
         ]);
 
         $video->increment('comments_count');
+
+        // 🔔 NOTIFICATION: Notifier le créateur de la vidéo
+        try {
+            if ($video->user_id !== auth()->id()) {
+                $this->notificationService->notifyVideoComment(
+                    $video->user_id,
+                    $user->name,
+                    $video->title
+                );
+            }
+        } catch (\Exception $e) {
+            Log::warning('Erreur notification commentaire vidéo: ' . $e->getMessage());
+        }
 
         return response()->json(['comment' => $comment->load('user')], 201);
     }

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->decimal('final_amount', 10, 2);
             $table->string('pin', 6); // PIN à 6 chiffres
             $table->string('qr_code')->unique(); // QR code unique
-            $table->enum('status', ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'pending_admin', 'confirmed', 'preparing', 'ready', 'in_delivery', 'delivered', 'cancelled'])->default('pending');
             $table->enum('payment_status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
             $table->text('delivery_address')->nullable();
             $table->text('notes')->nullable();
