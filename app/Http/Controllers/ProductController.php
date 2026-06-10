@@ -51,10 +51,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in index: ' . $e->getMessage());
+            Log::error('Error in index: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la récupération des produits'
             ], 500);
         }
     }
@@ -204,11 +204,10 @@ class ProductController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            Log::error('Error in store method: ' . $e->getMessage());
-            Log::error($e->getTraceAsString());
+            Log::error('Error in store method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur interne: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la création du produit'
             ], 500);
         }
     }
@@ -277,10 +276,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in update method: ' . $e->getMessage());
+            Log::error('Error in update method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la mise à jour du produit'
             ], 500);
         }
     }
@@ -316,10 +315,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in destroy method: ' . $e->getMessage());
+            Log::error('Error in destroy method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la suppression du produit'
             ], 500);
         }
     }
@@ -346,10 +345,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in show method: ' . $e->getMessage());
+            Log::error('Error in show method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la récupération du produit'
             ], 500);
         }
     }
@@ -372,10 +371,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in byShop method: ' . $e->getMessage());
+            Log::error('Error in byShop method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la récupération des produits'
             ], 500);
         }
     }
@@ -398,10 +397,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in byCategory method: ' . $e->getMessage());
+            Log::error('Error in byCategory method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la récupération des produits'
             ], 500);
         }
     }
@@ -428,10 +427,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in promotions method: ' . $e->getMessage());
+            Log::error('Error in promotions method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la récupération des promotions'
             ], 500);
         }
     }
@@ -463,10 +462,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in myProducts method: ' . $e->getMessage());
+            Log::error('Error in myProducts method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage(),
+                'message' => 'Une erreur est survenue lors de la récupération de vos produits',
                 'products' => []
             ], 500);
         }
@@ -529,10 +528,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in activatePromotion method: ' . $e->getMessage());
+            Log::error('Error in activatePromotion method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de l\'activation de la promotion'
             ], 500);
         }
     }
@@ -575,10 +574,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in deactivatePromotion method: ' . $e->getMessage());
+            Log::error('Error in deactivatePromotion method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la désactivation de la promotion'
             ], 500);
         }
     }
@@ -600,10 +599,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in variants method: ' . $e->getMessage());
+            Log::error('Error in variants method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la récupération des variantes'
             ], 500);
         }
     }
@@ -672,10 +671,10 @@ class ProductController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            Log::error('Error in addVariant method: ' . $e->getMessage());
+            Log::error('Error in addVariant method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de l\'ajout de la variante'
             ], 500);
         }
     }
@@ -714,10 +713,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in getSimilar method: ' . $e->getMessage());
+            Log::error('Error in getSimilar method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la récupération des produits similaires'
             ], 500);
         }
     }
@@ -759,10 +758,10 @@ class ProductController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            Log::error('Error in getTrendingByInterests: ' . $e->getMessage());
+            Log::error('Error in getTrendingByInterests: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la récupération des produits tendance'
             ], 500);
         }
     }
@@ -812,10 +811,10 @@ public function getRecommended(Request $request)
         ]);
 
     } catch (\Exception $e) {
-        Log::error('Error in getRecommended method: ' . $e->getMessage());
+        Log::error('Error in getRecommended method: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
         return response()->json([
             'success' => false,
-            'message' => 'Erreur: ' . $e->getMessage()
+            'message' => 'Une erreur est survenue lors de la récupération des recommandations'
         ], 500);
     }
 }

@@ -17,6 +17,8 @@ class EmailVerificationService
 
     /**
      * Envoyer le code de validation par email
+     *
+     * @throws \RuntimeException if the email fails to send
      */
     public function sendVerificationCode(string $email, string $code, string $name): bool
     {
@@ -24,8 +26,11 @@ class EmailVerificationService
             Mail::to($email)->send(new VerificationCodeMail($code, $name));
             return true;
         } catch (\Exception $e) {
-            \Log::error('Erreur envoi email: ' . $e->getMessage());
-            return false;
+            \Log::error('Erreur envoi email: ' . $e->getMessage(), [
+                'email' => $email,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            throw new \RuntimeException('Impossible d\'envoyer le code de validation par email', 0, $e);
         }
     }
 

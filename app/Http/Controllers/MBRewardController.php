@@ -82,7 +82,8 @@ class MBRewardController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
+            \Log::error('Error claiming reward: ' . $e->getMessage(), ['reward_id' => $id, 'user_id' => auth()->id()]);
+            return response()->json(['error' => 'Impossible de réclamer cette récompense'], 400);
         }
     }
 
@@ -144,7 +145,8 @@ class MBRewardController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error creating video view reward: ' . $e->getMessage(), ['video_id' => $request->video_id, 'user_id' => $request->user_id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la création de la récompense'], 500);
         }
     }
 
@@ -196,7 +198,8 @@ class MBRewardController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error creating video like reward: ' . $e->getMessage(), ['video_id' => $request->video_id, 'user_id' => $request->user_id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la création de la récompense'], 500);
         }
     }
 
@@ -238,7 +241,8 @@ class MBRewardController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error creating referral reward: ' . $e->getMessage(), ['referrer_id' => $request->referrer_id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la création de la récompense de parrainage'], 500);
         }
     }
 
@@ -275,7 +279,8 @@ class MBRewardController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error creating daily bonus: ' . $e->getMessage(), ['user_id' => $request->user_id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la création du bonus quotidien'], 500);
         }
     }
 
