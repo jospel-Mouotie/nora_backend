@@ -26,6 +26,8 @@ return new class extends Migration
             $table->text('images')->nullable(); // JSON des images
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->foreignId('shop_id')->constrained()->onDelete('cascade');
+            $table->integer('view_count')->default(0);
+            $table->integer('sales_count')->default(0);
             $table->timestamps();
             
             $table->index(['shop_id', 'is_active', 'in_promotion']);

@@ -84,10 +84,7 @@ class Category extends Model
         return $query->where('is_active', true);
     }
 
-    public function scopeEnAttente($query)
-    {
-        return $query->where('status', 'en_attente');
-    }
+    // scopeEnAttente removed - categories table doesn't have a 'status' field
 
     public function getInterestCountAttribute()
     {

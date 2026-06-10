@@ -13,9 +13,16 @@ use App\Models\VariantStock;
 use App\Models\Shop;
 use App\Models\UserInterest;
 use App\Models\UserHabitTracker;
+use App\Services\NotificationService;
 
 class ProductController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     /**
      * Lister les produits (avec filtres)
      */
@@ -93,14 +100,19 @@ class ProductController extends Controller
                 ], 403);
             }
 
-            // Validation - sans champ 'stock' au niveau produit
+            // Validation - accepter images[] pour upload de fichiers
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'description' => 'required|string',
                 'price' => 'required|numeric|min:0',
-                'sku' => 'required|string|unique:products,sku',
+                'sku' => 'nullable|string|unique:products,sku',
                 'category_id' => 'required|exists:categories,id',
                 'images' => 'nullable|array',
+                'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'promotion_price' => 'nullable|numeric|min:0',
+                'promotion_percentage' => 'nullable|numeric|min:0|max:100',
+                'in_promotion' => 'nullable|boolean',
+                'stock' => 'nullable|integer|min:0',
                 'variants' => 'nullable|array',
                 'variants.*.size' => 'nullable|string|max:50',
                 'variants.*.color' => 'nullable|string|max:50',
@@ -121,16 +133,37 @@ class ProductController extends Controller
             $data = $request->all();
             $data['shop_id'] = $user->shop->id;
 
-            // Traitement des images
-            $imagesJson = null;
-            if ($request->has('images') && $request->images !== null) {
-                $images = $request->images;
-                if (is_array($images)) {
-                    $imagesJson = json_encode($images);
-                }
+            // Générer SKU si non fourni
+            if (empty($data['sku'])) {
+                $data['sku'] = 'PRD-' . strtoupper(uniqid()) . '-' . rand(1000, 9999);
             }
 
-            // Création du produit SANS champ 'stock'
+            // Traitement des images - upload de fichiers
+            $imageUrls = [];
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    if ($image && $image->isValid()) {
+                        $path = $image->store('products', 'public');
+                        $imageUrls[] = Storage::url($path);
+                    }
+                }
+            } else if ($request->has('images') && is_array($request->images)) {
+                // Si c'est un tableau d'URLs existantes
+                $imageUrls = $request->images;
+            }
+
+            $imagesJson = !empty($imageUrls) ? json_encode($imageUrls) : null;
+
+            // Gestion des promotions
+            $promotionPrice = $data['promotion_price'] ?? null;
+            $promotionPercentage = $data['promotion_percentage'] ?? null;
+            $inPromotion = $data['in_promotion'] ?? false;
+
+            if ($promotionPrice && $promotionPercentage) {
+                $inPromotion = true;
+            }
+
+            // Création du produit
             $product = Product::create([
                 'name' => $data['name'],
                 'description' => $data['description'],
@@ -139,6 +172,9 @@ class ProductController extends Controller
                 'category_id' => $data['category_id'],
                 'shop_id' => $data['shop_id'],
                 'images' => $imagesJson,
+                'promotion_price' => $promotionPrice,
+                'promotion_percentage' => $promotionPercentage,
+                'in_promotion' => $inPromotion,
                 'is_active' => true,
             ]);
 
@@ -195,6 +231,27 @@ class ProductController extends Controller
                     'variant_id' => $defaultVariant->id,
                     'stock' => $initialStock
                 ]);
+            }
+
+            // 🔔 NOTIFICATION: Notifier les followers de la boutique
+            try {
+                $shop = $user->shop;
+                if ($shop) {
+                    $followerIds = $shop->followers()->pluck('user_id')->toArray();
+                    if (!empty($followerIds)) {
+                        $this->notificationService->notifyNewProduct(
+                            $followerIds,
+                            $shop->name,
+                            $product->name
+                        );
+                        Log::info('Notifications envoyées:', [
+                            'followers_count' => count($followerIds),
+                            'product_id' => $product->id
+                        ]);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning('Erreur notification followers: ' . $e->getMessage());
             }
 
             return response()->json([
