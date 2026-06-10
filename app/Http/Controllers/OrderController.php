@@ -115,9 +115,9 @@ class OrderController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error creating order: ' . $e->getMessage(), ['user_id' => $request->user()->id, 'trace' => $e->getTraceAsString()]);
             return response()->json([
-                'message' => 'Erreur lors de la création de la commande',
-                'error' => $e->getMessage()
+                'message' => 'Erreur lors de la création de la commande'
             ], 500);
         }
     }
@@ -169,10 +169,12 @@ class OrderController extends Controller
             return response()->json(['message' => 'Commande non trouvée'], 404);
         }
 
-        $order->confirm();
-
-        // Notifier la boutique
-        // Ici on pourrait implémenter un système de notification
+        try {
+            $order->confirm();
+        } catch (\Exception $e) {
+            \Log::error('Error confirming order: ' . $e->getMessage(), ['order_id' => $id]);
+            return response()->json(['message' => 'Impossible de confirmer la commande dans son état actuel'], 422);
+        }
 
         return response()->json([
             'message' => 'Commande confirmée',
@@ -195,7 +197,12 @@ class OrderController extends Controller
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
-        $order->startPreparing();
+        try {
+            $order->startPreparing();
+        } catch (\Exception $e) {
+            \Log::error('Error starting preparation: ' . $e->getMessage(), ['order_id' => $id]);
+            return response()->json(['message' => 'Impossible de passer la commande en préparation dans son état actuel'], 422);
+        }
 
         return response()->json([
             'message' => 'Commande en préparation',
@@ -217,7 +224,12 @@ class OrderController extends Controller
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
-        $order->markAsReady();
+        try {
+            $order->markAsReady();
+        } catch (\Exception $e) {
+            \Log::error('Error marking order as ready: ' . $e->getMessage(), ['order_id' => $id]);
+            return response()->json(['message' => 'Impossible de marquer la commande comme prête dans son état actuel'], 422);
+        }
 
         return response()->json([
             'message' => 'Commande prête',
@@ -240,7 +252,12 @@ class OrderController extends Controller
             return response()->json(['message' => 'Non autorisé'], 403);
         }
 
-        $order->markAsDelivered();
+        try {
+            $order->markAsDelivered();
+        } catch (\Exception $e) {
+            \Log::error('Error marking order as delivered: ' . $e->getMessage(), ['order_id' => $id]);
+            return response()->json(['message' => 'Impossible de marquer la commande comme livrée dans son état actuel'], 422);
+        }
 
         return response()->json([
             'message' => 'Commande livrée',

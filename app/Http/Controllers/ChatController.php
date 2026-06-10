@@ -52,7 +52,15 @@ class ChatController extends Controller
         // Gérer l'upload de fichier si présent
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('chat-attachments', 'public');
+            try {
+                $attachmentPath = $request->file('attachment')->store('chat-attachments', 'public');
+                if ($attachmentPath === false) {
+                    return response()->json(['error' => 'Erreur lors de l\'upload du fichier'], 500);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Error uploading chat attachment: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+                return response()->json(['error' => 'Erreur lors de l\'upload du fichier'], 500);
+            }
         }
 
         $message = Message::create([

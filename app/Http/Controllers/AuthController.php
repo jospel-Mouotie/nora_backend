@@ -37,11 +37,12 @@ class AuthController extends Controller
 
         // Générer et envoyer le code de validation
         $code = $this->emailVerificationService->generateCode();
-        $sent = $this->emailVerificationService->sendVerificationCode($request->email, $code, $request->name);
-
-        // En développement, on continue même si l'email échoue
-        if (!$sent && config('app.env') !== 'local') {
-            return response()->json(['message' => 'Erreur lors de l\'envoi du code de validation'], 500);
+        try {
+            $this->emailVerificationService->sendVerificationCode($request->email, $code, $request->name);
+        } catch (\RuntimeException $e) {
+            if (config('app.env') !== 'local') {
+                return response()->json(['message' => 'Erreur lors de l\'envoi du code de validation'], 500);
+            }
         }
 
         // Stocker le code et les données temporaires

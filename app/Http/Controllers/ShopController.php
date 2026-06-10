@@ -231,11 +231,19 @@ class ShopController extends Controller
 
         // Gérer l'upload de la photo (logo)
         if ($request->hasFile('photo')) {
-            if ($shop->photo) {
-                Storage::disk('public')->delete($shop->photo);
+            try {
+                if ($shop->photo) {
+                    Storage::disk('public')->delete($shop->photo);
+                }
+                $path = $request->file('photo')->store('shops/logos', 'public');
+                if ($path === false) {
+                    return response()->json(['message' => 'Erreur lors de l\'upload de la photo'], 500);
+                }
+                $data['photo'] = $path;
+            } catch (\Exception $e) {
+                \Log::error('Error uploading shop photo: ' . $e->getMessage(), ['shop_id' => $id, 'trace' => $e->getTraceAsString()]);
+                return response()->json(['message' => 'Erreur lors de l\'upload de la photo'], 500);
             }
-            $path = $request->file('photo')->store('shops/logos', 'public');
-            $data['photo'] = $path;
         }
 
         // Gérer l'upload de la bannière
@@ -297,7 +305,11 @@ class ShopController extends Controller
 
         // Supprimer les fichiers
         if ($shop->photo) {
-            Storage::disk('public')->delete($shop->photo);
+            try {
+                Storage::disk('public')->delete($shop->photo);
+            } catch (\Exception $e) {
+                \Log::warning('Failed to delete shop photo during shop deletion: ' . $e->getMessage(), ['shop_id' => $id]);
+            }
         }
         if ($shop->banner) {
             Storage::disk('public')->delete($shop->banner);

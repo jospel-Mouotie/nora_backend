@@ -67,19 +67,12 @@ class CartController extends Controller
  */
 public function addItem(Request $request)
 {
-    \Log::info('=== DIAGNOSTIC CART CONTROLLER ===');
-    \Log::info('Méthode: ' . $request->method());
-    \Log::info('Content-Type: ' . $request->header('Content-Type'));
-    \Log::info('Raw content: ' . $request->getContent());
-    
     // Lire le JSON correctement
     $input = $request->json()->all();
     
     if (empty($input)) {
         $input = $request->all();
     }
-    
-    \Log::info('Input reçu:', $input);
 
     // Validation accepte product_id OU variant_id
     $validator = Validator::make($input, [
@@ -249,7 +242,15 @@ public function addItem(Request $request)
 
         // Récupérer le prix unitaire
         $variant = ProductVariant::find($cartItem->product_variant_id);
+        if (!$variant) {
+            return response()->json(['message' => 'Variante du produit non trouvée'], 404);
+        }
+
         $product = Product::find($variant->product_id);
+        if (!$product) {
+            return response()->json(['message' => 'Produit non trouvé'], 404);
+        }
+
         $unitPrice = floatval($product->price) + floatval($variant->price_adjustment);
         $totalPrice = $unitPrice * $quantity;
 

@@ -150,7 +150,8 @@ class MBShopController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
+            \Log::error('Error purchasing item: ' . $e->getMessage(), ['item_id' => $id, 'user_id' => auth()->id(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de l\'achat'], 400);
         }
     }
 
@@ -237,7 +238,8 @@ class MBShopController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error cancelling purchase: ' . $e->getMessage(), ['purchase_id' => $id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de l\'annulation'], 500);
         }
     }
 
@@ -272,7 +274,8 @@ class MBShopController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error requesting refund: ' . $e->getMessage(), ['purchase_id' => $id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la demande de remboursement'], 500);
         }
     }
 
@@ -454,7 +457,8 @@ class MBShopController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error creating MB shop: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la création de la boutique MB'], 500);
         }
     }
 
@@ -510,7 +514,8 @@ class MBShopController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error updating MB shop: ' . $e->getMessage(), ['shop_id' => $id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la mise à jour de la boutique MB'], 500);
         }
     }
 
@@ -537,7 +542,8 @@ class MBShopController extends Controller
             return response()->json(['message' => 'Boutique MB supprimée']);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error deleting MB shop: ' . $e->getMessage(), ['shop_id' => $id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la suppression de la boutique MB'], 500);
         }
     }
 

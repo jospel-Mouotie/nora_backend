@@ -122,7 +122,8 @@ class AdController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error creating ad: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la création de la publicité'], 500);
         }
     }
 
@@ -182,7 +183,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error updating ad: ' . $e->getMessage(), ['ad_id' => $id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la mise à jour de la publicité'], 500);
         }
     }
 
@@ -204,7 +206,8 @@ class AdController extends Controller
             return response()->json(['message' => 'Publicité supprimée']);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error deleting ad: ' . $e->getMessage(), ['ad_id' => $id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la suppression de la publicité'], 500);
         }
     }
 
@@ -231,7 +234,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error starting ad: ' . $e->getMessage(), ['ad_id' => $id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors du démarrage de la publicité'], 500);
         }
     }
 
@@ -251,7 +255,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error pausing ad: ' . $e->getMessage(), ['ad_id' => $id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de la mise en pause de la publicité'], 500);
         }
     }
 
@@ -303,7 +308,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error recording impression: ' . $e->getMessage(), ['ad_id' => $id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de l\'enregistrement de l\'impression'], 500);
         }
     }
 
@@ -329,7 +335,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error recording click: ' . $e->getMessage(), ['ad_id' => $id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de l\'enregistrement du clic'], 500);
         }
     }
 
@@ -373,7 +380,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error recording conversion: ' . $e->getMessage(), ['ad_id' => $id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de l\'enregistrement de la conversion'], 500);
         }
     }
 

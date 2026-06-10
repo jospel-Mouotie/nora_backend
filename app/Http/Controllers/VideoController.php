@@ -126,8 +126,8 @@ class VideoController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Erreur upload vidéo: ' . $e->getMessage());
-            return response()->json(['error' => 'Erreur: ' . $e->getMessage()], 500);
+            Log::error('Erreur upload vidéo: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de l\'upload de la vidéo'], 500);
         }
     }
 
@@ -466,6 +466,10 @@ class VideoController extends Controller
 
         return response()->stream(function () use ($videoPath, $start, $length) {
             $handle = fopen($videoPath, 'rb');
+            if ($handle === false) {
+                \Log::error('Failed to open video file for streaming', ['path' => $videoPath]);
+                return;
+            }
             fseek($handle, $start);
             echo fread($handle, $length);
             fclose($handle);
