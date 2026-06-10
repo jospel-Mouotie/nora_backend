@@ -67,19 +67,13 @@ class CartController extends Controller
  */
 public function addItem(Request $request)
 {
-    \Log::info('=== DIAGNOSTIC CART CONTROLLER ===');
-    \Log::info('Méthode: ' . $request->method());
-    \Log::info('Content-Type: ' . $request->header('Content-Type'));
-    \Log::info('Raw content: ' . $request->getContent());
-    
     // Lire le JSON correctement
     $input = $request->json()->all();
     
     if (empty($input)) {
         $input = $request->all();
     }
-    
-    \Log::info('Input reçu:', $input);
+
 
     // Validation accepte product_id OU variant_id
     $validator = Validator::make($input, [

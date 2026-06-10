@@ -132,7 +132,8 @@ class AdminChatController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -165,7 +166,8 @@ class AdminChatController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -190,7 +192,8 @@ class AdminChatController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -269,7 +272,8 @@ class AdminChatController extends Controller
             return response()->json(['message' => 'Message supprimé']);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -366,7 +370,8 @@ class AdminChatController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 

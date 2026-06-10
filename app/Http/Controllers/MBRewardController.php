@@ -82,7 +82,8 @@ class MBRewardController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 400);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur est survenue'], 400);
         }
     }
 
@@ -144,7 +145,8 @@ class MBRewardController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -196,7 +198,8 @@ class MBRewardController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -238,7 +241,8 @@ class MBRewardController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -275,7 +279,8 @@ class MBRewardController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 

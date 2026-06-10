@@ -96,7 +96,8 @@ class VideoController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur upload vidéo: ' . $e->getMessage());
-            return response()->json(['error' => 'Erreur: ' . $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 

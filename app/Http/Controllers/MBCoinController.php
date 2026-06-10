@@ -123,7 +123,8 @@ class MBCoinController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -202,7 +203,8 @@ class MBCoinController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -244,7 +246,8 @@ class MBCoinController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 

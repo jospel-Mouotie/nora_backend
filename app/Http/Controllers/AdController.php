@@ -122,7 +122,8 @@ class AdController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -182,7 +183,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -204,7 +206,8 @@ class AdController extends Controller
             return response()->json(['message' => 'Publicité supprimée']);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -231,7 +234,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -251,7 +255,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -303,7 +308,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -329,7 +335,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 
@@ -373,7 +380,8 @@ class AdController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error($e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Une erreur interne est survenue'], 500);
         }
     }
 

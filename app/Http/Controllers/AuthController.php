@@ -28,7 +28,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:client,commercant,grossiste,livreur,admin',
+            'role' => 'required|in:client,commercant,grossiste,livreur',
         ]);
 
         if ($validator->fails()) {
@@ -92,7 +92,11 @@ class AuthController extends Controller
         }
 
         // Créer l'utilisateur
+        $role = $registrationData['role'] ?? 'client';
+        unset($registrationData['role']);
         $user = User::create($registrationData);
+        $user->role = $role;
+        $user->save();
 
         // Supprimer les données temporaires
         Cache::forget('verification_code_' . $request->email);

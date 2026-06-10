@@ -53,7 +53,7 @@ class UserHabitController extends Controller
             Log::error('Error in trackAction: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -81,7 +81,7 @@ class UserHabitController extends Controller
             Log::error('Error in getViewHistory: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -120,7 +120,7 @@ class UserHabitController extends Controller
             Log::error('Error in getMostViewedCategories: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -160,7 +160,7 @@ class UserHabitController extends Controller
             Log::error('Error in getMostViewedProducts: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -188,7 +188,7 @@ class UserHabitController extends Controller
             Log::error('Error in getSearchHistory: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -233,7 +233,7 @@ class UserHabitController extends Controller
             Log::error('Error in getPurchaseHistory: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -259,7 +259,7 @@ class UserHabitController extends Controller
             Log::error('Error in getActivityPattern: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -288,7 +288,7 @@ class UserHabitController extends Controller
             Log::error('Error in getRecommendedProducts: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -316,7 +316,7 @@ class UserHabitController extends Controller
             Log::error('Error in getRecommendedCategories: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -379,7 +379,7 @@ class UserHabitController extends Controller
             Log::error('Error in getRecommendedShops: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -441,7 +441,7 @@ class UserHabitController extends Controller
             Log::error('Error in getRecommendedVideos: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -481,7 +481,7 @@ class UserHabitController extends Controller
             Log::error('Error in getStats: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -529,7 +529,7 @@ class UserHabitController extends Controller
             Log::error('Error in clearHistory: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }

@@ -58,8 +58,12 @@ class ShopCertificationController extends Controller
         return response()->json(['message' => 'Payment recorded, waiting for admin approval', 'request' => $certRequest]);
     }
 
-    public function adminPendingRequests()
+    public function adminPendingRequests(Request $request)
     {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
         $requests = ShopCertificationRequest::whereIn('status', ['pending', 'paid'])
             ->with('shop.user')
             ->orderBy('created_at', 'asc')
@@ -70,6 +74,10 @@ class ShopCertificationController extends Controller
 
     public function adminValidate(Request $request, $requestId)
     {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
         $certRequest = ShopCertificationRequest::findOrFail($requestId);
         $certRequest->update(['status' => 'approved', 'admin_comment' => $request->admin_comment]);
 
@@ -84,6 +92,10 @@ class ShopCertificationController extends Controller
 
     public function adminReject(Request $request, $requestId)
     {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
         $certRequest = ShopCertificationRequest::findOrFail($requestId);
         $certRequest->update([
             'status' => 'rejected',

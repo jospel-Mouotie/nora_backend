@@ -43,7 +43,7 @@ class ShopController extends Controller
             return response()->json(['message' => 'Vous avez atteint la limite de 3 boutiques actives'], 403);
         }
 
-        $data = $request->all();
+        $data = $request->only(['name', 'description', 'address', 'phone', 'email']);
         $data['user_id'] = $user->id;
         $data['status'] = 'en_attente'; // En attente de validation admin
 

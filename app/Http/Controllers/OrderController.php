@@ -117,7 +117,7 @@ class OrderController extends Controller
             DB::rollBack();
             return response()->json([
                 'message' => 'Erreur lors de la création de la commande',
-                'error' => $e->getMessage()
+                'error' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
