@@ -9,24 +9,24 @@ use App\Models\User;
 use App\Services\GeolocationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
+use App\Traits\ApiResponse;
 
 class DeliveryController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Créer une nouvelle livraison
      */
     public function store(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'order_id' => 'required|exists:orders,id',
             'delivery_address' => 'required|string|max:500',
             'delivery_fee' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:1000',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $order = Order::findOrFail($request->order_id);
@@ -35,9 +35,7 @@ class DeliveryController extends Controller
         $coordinates = GeolocationService::geocodeAddress($request->delivery_address);
         
         if (!$coordinates) {
-            return response()->json([
-                'error' => 'Impossible de géolocaliser l\'adresse de livraison'
-            ], 400);
+            return $this->errorResponse('Impossible de géolocaliser l\'adresse de livraison', 400);
         }
 
         $delivery = Delivery::create([
@@ -48,13 +46,13 @@ class DeliveryController extends Controller
             'delivery_latitude' => $coordinates['latitude'],
             'delivery_longitude' => $coordinates['longitude'],
             'status' => 'assigned',
-            'estimated_delivery_at' => now()->addHours(2), // Estimation par défaut
+            'estimated_delivery_at' => now()->addHours(2),
         ]);
 
-        return response()->json([
-            'message' => 'Livraison créée avec succès',
-            'delivery' => $delivery->load('order')
-        ], 201);
+        return $this->createdResponse(
+            ['delivery' => $delivery->load('order')],
+            'Livraison créée avec succès'
+        );
     }
 
     /**
@@ -62,21 +60,19 @@ class DeliveryController extends Controller
      */
     public function updateLocation(Request $request, Delivery $delivery): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $delivery->updateCurrentLocation($request->latitude, $request->longitude);
 
-        return response()->json([
-            'message' => 'Position mise à jour',
-            'delivery' => $delivery
-        ]);
+        return $this->successResponse(
+            ['delivery' => $delivery],
+            'Position mise à jour'
+        );
     }
 
     /**
@@ -84,21 +80,17 @@ class DeliveryController extends Controller
      */
     public function assignDeliveryPerson(Request $request, Delivery $delivery): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'delivery_person_id' => 'required|exists:users,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $deliveryPerson = User::findOrFail($request->delivery_person_id);
         
         // Vérifier que l'utilisateur est un livreur
         if ($deliveryPerson->role !== 'livreur' && $deliveryPerson->role !== 'delivery_person') {
-            return response()->json([
-                'error' => 'Cet utilisateur n\'est pas un livreur'
-            ], 400);
+            return $this->errorResponse('Cet utilisateur n\'est pas un livreur', 400);
         }
 
         $delivery->update([
@@ -106,10 +98,10 @@ class DeliveryController extends Controller
             'status' => 'assigned',
         ]);
 
-        return response()->json([
-            'message' => 'Livreur assigné avec succès',
-            'delivery' => $delivery->load('deliveryPerson')
-        ]);
+        return $this->successResponse(
+            ['delivery' => $delivery->load('deliveryPerson')],
+            'Livreur assigné avec succès'
+        );
     }
 
     /**
@@ -118,17 +110,15 @@ class DeliveryController extends Controller
     public function markAsPickedUp(Delivery $delivery): JsonResponse
     {
         if ($delivery->status !== 'assigned') {
-            return response()->json([
-                'error' => 'Cette livraison ne peut pas être marquée comme prise en charge'
-            ], 400);
+            return $this->errorResponse('Cette livraison ne peut pas être marquée comme prise en charge', 400);
         }
 
         $delivery->markAsPickedUp();
 
-        return response()->json([
-            'message' => 'Livraison marquée comme prise en charge',
-            'delivery' => $delivery
-        ]);
+        return $this->successResponse(
+            ['delivery' => $delivery],
+            'Livraison marquée comme prise en charge'
+        );
     }
 
     /**
@@ -137,17 +127,15 @@ class DeliveryController extends Controller
     public function markAsDelivered(Delivery $delivery): JsonResponse
     {
         if ($delivery->status !== 'in_transit' && $delivery->status !== 'picked_up') {
-            return response()->json([
-                'error' => 'Cette livraison ne peut pas être marquée comme terminée'
-            ], 400);
+            return $this->errorResponse('Cette livraison ne peut pas être marquée comme terminée', 400);
         }
 
         $delivery->markAsDelivered();
 
-        return response()->json([
-            'message' => 'Livraison marquée comme terminée',
-            'delivery' => $delivery
-        ]);
+        return $this->successResponse(
+            ['delivery' => $delivery],
+            'Livraison marquée comme terminée'
+        );
     }
 
     /**
@@ -186,13 +174,11 @@ class DeliveryController extends Controller
      */
     public function getDeliveryPersonDeliveries(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'delivery_person_id' => 'required|exists:users,id',
             'status' => 'nullable|in:assigned,picked_up,in_transit,delivered,cancelled',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $query = Delivery::forDeliveryPerson($request->delivery_person_id)
@@ -212,14 +198,12 @@ class DeliveryController extends Controller
      */
     public function findNearbyDeliveryPersons(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'radius_km' => 'nullable|numeric|min:1|max:50',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $radiusKm = $request->radius_km ?? 10;
@@ -240,13 +224,11 @@ class DeliveryController extends Controller
      */
     public function getStats(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $query = Delivery::query();
@@ -278,16 +260,14 @@ class DeliveryController extends Controller
     public function cancel(Delivery $delivery): JsonResponse
     {
         if (in_array($delivery->status, ['delivered', 'cancelled'])) {
-            return response()->json([
-                'error' => 'Cette livraison ne peut pas être annulée'
-            ], 400);
+            return $this->errorResponse('Cette livraison ne peut pas être annulée', 400);
         }
 
         $delivery->update(['status' => 'cancelled']);
 
-        return response()->json([
-            'message' => 'Livraison annulée',
-            'delivery' => $delivery
-        ]);
+        return $this->successResponse(
+            ['delivery' => $delivery],
+            'Livraison annulée'
+        );
     }
 }

@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
 use App\Models\Shop;
 use App\Models\User;
 use App\Models\Category;
 use App\Services\NotificationService;
+use App\Traits\ApiResponse;
+use App\Traits\HandlesFileUploads;
+use App\Traits\AuthorizesRoles;
 
 class ShopController extends Controller
 {
+    use ApiResponse, HandlesFileUploads, AuthorizesRoles;
+
     protected $notificationService;
 
     public function __construct(NotificationService $notificationService)
@@ -23,7 +26,7 @@ class ShopController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'address' => 'required|string',
@@ -33,7 +36,6 @@ class ShopController extends Controller
             'banner' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
             'category_ids' => 'nullable|array',
             'category_ids.*' => 'exists:categories,id',
-            // Nouveaux champs
             'delivery_cities' => 'nullable|array',
             'delivery_cities.*' => 'string|max:100',
             'delivery_price' => 'nullable|numeric|min:0',
@@ -45,15 +47,13 @@ class ShopController extends Controller
             'facebook_url' => 'nullable|url|max:255',
             'instagram_url' => 'nullable|url|max:255',
             'whatsapp_number' => 'nullable|string|max:20',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $user = $request->user();
-        if (!in_array($user->role, ['commercant', 'grossiste', 'admin'])) {
-            return response()->json(['message' => 'Seuls les commerçants et grossistes peuvent créer des boutiques'], 403);
+        if ($error = $this->authorizeRoles($request, ['commercant', 'grossiste', 'admin'])) {
+            return $this->errorResponse('Seuls les commerçants et grossistes peuvent créer des boutiques', 403);
         }
 
         $existingShops = Shop::where('user_id', $user->id)
@@ -61,7 +61,7 @@ class ShopController extends Controller
             ->count();
 
         if ($existingShops >= 3) {
-            return response()->json(['message' => 'Vous avez atteint la limite de 3 boutiques actives'], 403);
+            return $this->errorResponse('Vous avez atteint la limite de 3 boutiques actives', 403);
         }
 
         $data = $request->except(['photo', 'banner', 'category_ids']);
@@ -69,8 +69,7 @@ class ShopController extends Controller
         $data['status'] = 'en_attente';
 
         // Gérer l'upload de la photo (logo)
-        if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('shops/logos', 'public');
+        if ($path = $this->uploadFile($request, 'photo', 'shops/logos')) {
             $data['photo'] = $path;
         }
 
@@ -110,10 +109,10 @@ class ShopController extends Controller
         // Notifier les admins de la création de la boutique
         $this->notificationService->notifyShopCreated($shop->id, $shop->name);
 
-        return response()->json([
-            'message' => 'Boutique créée avec succès. En attente de validation par l\'administrateur.',
-            'shop' => $shop->load('categories')
-        ], 201);
+        return $this->createdResponse(
+            ['shop' => $shop->load('categories')],
+            'Boutique créée avec succès. En attente de validation par l\'administrateur.'
+        );
     }
 
     /**
@@ -167,7 +166,7 @@ class ShopController extends Controller
             ->find($id);
 
         if (!$shop) {
-            return response()->json(['message' => 'Boutique non trouvée'], 404);
+            return $this->notFoundResponse('Boutique');
         }
 
         // Ajouter les URLs complètes des images
@@ -193,14 +192,14 @@ class ShopController extends Controller
         $shop = Shop::find($id);
 
         if (!$shop) {
-            return response()->json(['message' => 'Boutique non trouvée'], 404);
+            return $this->notFoundResponse('Boutique');
         }
 
-        if ($shop->user_id !== $request->user()->id && $request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeOwnerOrAdmin($request, $shop->user_id)) {
+            return $error;
         }
 
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'name' => 'sometimes|required|string|max:255',
             'description' => 'sometimes|required|string',
             'address' => 'sometimes|required|string',
@@ -221,20 +220,14 @@ class ShopController extends Controller
             'facebook_url' => 'nullable|url|max:255',
             'instagram_url' => 'nullable|url|max:255',
             'whatsapp_number' => 'nullable|string|max:20',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $data = $request->except(['photo', 'banner', 'category_ids', 'delivery_cities', 'opening_hours']);
 
         // Gérer l'upload de la photo (logo)
-        if ($request->hasFile('photo')) {
-            if ($shop->photo) {
-                Storage::disk('public')->delete($shop->photo);
-            }
-            $path = $request->file('photo')->store('shops/logos', 'public');
+        if ($path = $this->replaceFile($request, 'photo', 'shops/logos', $shop->photo)) {
             $data['photo'] = $path;
         }
 
@@ -274,10 +267,10 @@ class ShopController extends Controller
             $shop->syncCategories($request->category_ids ?? []);
         }
 
-        return response()->json([
-            'message' => 'Boutique mise à jour avec succès',
-            'shop' => $shop->load('categories')
-        ]);
+        return $this->successResponse(
+            ['shop' => $shop->load('categories')],
+            'Boutique mise à jour avec succès'
+        );
     }
 
     /**
@@ -288,24 +281,19 @@ class ShopController extends Controller
         $shop = Shop::find($id);
 
         if (!$shop) {
-            return response()->json(['message' => 'Boutique non trouvée'], 404);
+            return $this->notFoundResponse('Boutique');
         }
 
-        if ($shop->user_id !== $request->user()->id && $request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeOwnerOrAdmin($request, $shop->user_id)) {
+            return $error;
         }
 
-        // Supprimer les fichiers
-        if ($shop->photo) {
-            Storage::disk('public')->delete($shop->photo);
-        }
-        if ($shop->banner) {
-            Storage::disk('public')->delete($shop->banner);
-        }
+        $this->deleteStoredFile($shop->photo);
+        $this->deleteStoredFile($shop->banner);
 
         $shop->delete();
 
-        return response()->json(['message' => 'Boutique supprimée avec succès']);
+        return $this->successResponse([], 'Boutique supprimée avec succès');
     }
 
     /**
@@ -313,8 +301,8 @@ class ShopController extends Controller
      */
     public function enAttente(Request $request)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeAdmin($request)) {
+            return $error;
         }
 
         $shops = Shop::where('status', 'en_attente')
@@ -330,14 +318,14 @@ class ShopController extends Controller
      */
     public function valider(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeAdmin($request)) {
+            return $error;
         }
 
         $shop = Shop::find($id);
 
         if (!$shop) {
-            return response()->json(['message' => 'Boutique non trouvée'], 404);
+            return $this->notFoundResponse('Boutique');
         }
 
         $shop->update(['status' => 'active']);
@@ -345,10 +333,10 @@ class ShopController extends Controller
         // Notifier le propriétaire de la boutique
         $this->notificationService->notifyShopApproved($shop->user_id, $shop->name);
 
-        return response()->json([
-            'message' => 'Boutique validée avec succès',
-            'shop' => $shop->load('categories')
-        ]);
+        return $this->successResponse(
+            ['shop' => $shop->load('categories')],
+            'Boutique validée avec succès'
+        );
     }
 
     /**
@@ -356,14 +344,14 @@ class ShopController extends Controller
      */
     public function refuser(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeAdmin($request)) {
+            return $error;
         }
 
         $shop = Shop::find($id);
 
         if (!$shop) {
-            return response()->json(['message' => 'Boutique non trouvée'], 404);
+            return $this->notFoundResponse('Boutique');
         }
 
         $shop->update(['status' => 'refusee']);
@@ -371,10 +359,10 @@ class ShopController extends Controller
         // Notifier le propriétaire du refus
         $this->notificationService->notifyShopRejected($shop->user_id, $shop->name);
 
-        return response()->json([
-            'message' => 'Boutique refusée',
-            'shop' => $shop
-        ]);
+        return $this->successResponse(
+            ['shop' => $shop],
+            'Boutique refusée'
+        );
     }
 
     /**

@@ -8,11 +8,13 @@ use App\Models\Shop;
 use App\Models\MBCoin;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
+use App\Traits\ApiResponse;
+use App\Traits\HandlesFileUploads;
 
 class AdController extends Controller
 {
+    use ApiResponse, HandlesFileUploads;
+
     /**
      * Obtenir toutes les publicités
      */
@@ -71,7 +73,7 @@ class AdController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'shop_id' => 'required|exists:shops,id',
             'ad_campaign_id' => 'nullable|exists:ad_campaigns,id',
             'title' => 'required|string|max:255',
@@ -90,16 +92,14 @@ class AdController extends Controller
             'ends_at' => 'nullable|date|after:starts_at',
             'targeting' => 'nullable|array',
             'metadata' => 'nullable|array',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         try {
             $shop = Shop::findOrFail($request->shop_id);
             if (!$shop->certifiee) {
-                return response()->json(['error' => 'Seules les boutiques certifiées peuvent créer des publicités.'], 403);
+                return $this->unauthorizedResponse('Seules les boutiques certifiées peuvent créer des publicités.');
             }
 
             $data = $request->only([
@@ -110,8 +110,8 @@ class AdController extends Controller
             ]);
 
             // Upload de l'image
-            if ($request->hasFile('image')) {
-                $data['image'] = $request->file('image')->store('ad-images', 'public');
+            if ($path = $this->uploadFile($request, 'image', 'ad-images')) {
+                $data['image'] = $path;
             }
 
             $ad = Ad::create($data);
@@ -133,7 +133,7 @@ class AdController extends Controller
     {
         $ad = Ad::findOrFail($id);
 
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
             'image' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:2048',
@@ -151,10 +151,8 @@ class AdController extends Controller
             'ends_at' => 'nullable|date|after:starts_at',
             'targeting' => 'nullable|array',
             'metadata' => 'nullable|array',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         try {
@@ -166,12 +164,8 @@ class AdController extends Controller
             ]);
 
             // Upload de l'image
-            if ($request->hasFile('image')) {
-                // Supprimer l'ancienne image
-                if ($ad->image) {
-                    Storage::disk('public')->delete($ad->image);
-                }
-                $data['image'] = $request->file('image')->store('ad-images', 'public');
+            if ($path = $this->replaceFile($request, 'image', 'ad-images', $ad->image)) {
+                $data['image'] = $path;
             }
 
             $ad->update($data);
@@ -194,10 +188,7 @@ class AdController extends Controller
         $ad = Ad::findOrFail($id);
 
         try {
-            // Supprimer l'image
-            if ($ad->image) {
-                Storage::disk('public')->delete($ad->image);
-            }
+            $this->deleteStoredFile($ad->image);
 
             $ad->delete();
 
@@ -344,13 +335,11 @@ class AdController extends Controller
             return response()->json(['error' => 'Publicité non active'], 400);
         }
 
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'conversion_value' => 'nullable|numeric|min:0',
             'conversion_data' => 'nullable|array',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         try {

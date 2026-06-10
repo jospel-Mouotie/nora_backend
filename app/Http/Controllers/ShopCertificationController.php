@@ -5,21 +5,23 @@ namespace App\Http\Controllers;
 use App\Models\Shop;
 use App\Models\ShopCertificationRequest;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Traits\ApiResponse;
 
 class ShopCertificationController extends Controller
 {
+    use ApiResponse;
+
     public function requestCertification(Request $request, $shopId)
     {
         $shop = Shop::where('user_id', auth()->id())->findOrFail($shopId);
 
         if ($shop->certifiee) {
-            return response()->json(['error' => 'Shop is already certified'], 400);
+            return $this->errorResponse('Shop is already certified', 400);
         }
 
         $existingReq = ShopCertificationRequest::where('shop_id', $shopId)->whereIn('status', ['pending', 'paid'])->first();
         if ($existingReq) {
-            return response()->json(['error' => 'A certification request is already in progress'], 400);
+            return $this->errorResponse('A certification request is already in progress', 400);
         }
 
         $certRequest = ShopCertificationRequest::create([
@@ -27,7 +29,10 @@ class ShopCertificationController extends Controller
             'status' => 'pending',
         ]);
 
-        return response()->json(['message' => 'Certification requested', 'request' => $certRequest], 201);
+        return $this->createdResponse(
+            ['request' => $certRequest],
+            'Certification requested'
+        );
     }
 
     public function payCertification(Request $request, $requestId)
@@ -37,16 +42,14 @@ class ShopCertificationController extends Controller
         })->findOrFail($requestId);
 
         if ($certRequest->status !== 'pending') {
-            return response()->json(['error' => 'Cannot pay for this request'], 400);
+            return $this->errorResponse('Cannot pay for this request', 400);
         }
 
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'payment_method' => 'required|string',
             'transaction_id' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $certRequest->update([
@@ -55,7 +58,10 @@ class ShopCertificationController extends Controller
             'transaction_id' => $request->transaction_id,
         ]);
 
-        return response()->json(['message' => 'Payment recorded, waiting for admin approval', 'request' => $certRequest]);
+        return $this->successResponse(
+            ['request' => $certRequest],
+            'Payment recorded, waiting for admin approval'
+        );
     }
 
     public function adminPendingRequests()
@@ -79,7 +85,7 @@ class ShopCertificationController extends Controller
             'certifiee_at' => now(),
         ]);
 
-        return response()->json(['message' => 'Shop certification approved']);
+        return $this->successResponse([], 'Shop certification approved');
     }
 
     public function adminReject(Request $request, $requestId)
@@ -90,6 +96,6 @@ class ShopCertificationController extends Controller
             'admin_comment' => $request->admin_comment
         ]);
 
-        return response()->json(['message' => 'Shop certification rejected']);
+        return $this->successResponse([], 'Shop certification rejected');
     }
 }

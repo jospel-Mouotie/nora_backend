@@ -6,11 +6,14 @@ use App\Models\AdminChat;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\ApiResponse;
+use App\Traits\HandlesFileUploads;
 
 class AdminChatController extends Controller
 {
+    use ApiResponse, HandlesFileUploads;
+
     /**
      * Obtenir les conversations de chat admin
      */
@@ -18,7 +21,6 @@ class AdminChatController extends Controller
     {
         $query = AdminChat::with(['user', 'admin']);
 
-        // Filtres
         if ($request->user_id) {
             $query->forUser($request->user_id);
         }
@@ -81,15 +83,13 @@ class AdminChatController extends Controller
      */
     public function sendMessage(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'user_id' => 'required_without:conversation_id|exists:users,id',
             'content' => 'required_without:attachment|string|max:2000',
-            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,gif,pdf,doc,docx|max:5120', // 5MB
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,gif,pdf,doc,docx|max:5120',
             'type' => 'nullable|in:text,image,file',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         try {
@@ -101,24 +101,19 @@ class AdminChatController extends Controller
                 'is_read' => false,
             ];
 
-            // Déterminer l'admin_id si c'est un message d'admin
             if (auth()->user()->isAdmin()) {
                 $data['admin_id'] = auth()->id();
             }
 
             // Upload de l'attachment
-            if ($request->hasFile('attachment')) {
-                $attachment = $request->file('attachment');
-                $path = $attachment->store('admin-chat-attachments', 'public');
+            if ($path = $this->uploadFile($request, 'attachment', 'admin-chat-attachments')) {
                 $data['attachment_path'] = $path;
-                $data['type'] = $this->getFileType($attachment->getClientOriginalExtension());
+                $data['type'] = $this->getFileType($request->file('attachment')->getClientOriginalExtension());
             }
 
             $message = AdminChat::create($data);
 
-            // Créer une notification système si nécessaire
             if (auth()->user()->isAdmin()) {
-                // Notifier l'utilisateur
                 $this->createSystemMessage(
                     $request->user_id,
                     "Nouveau message de l'administrateur",
@@ -126,13 +121,13 @@ class AdminChatController extends Controller
                 );
             }
 
-            return response()->json([
-                'message' => 'Message envoyé',
-                'chat_message' => $message->load(['user', 'admin']),
-            ], 201);
+            return $this->createdResponse(
+                ['chat_message' => $message->load(['user', 'admin'])],
+                'Message envoyé'
+            );
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return $this->serverErrorResponse($e->getMessage());
         }
     }
 
@@ -141,13 +136,11 @@ class AdminChatController extends Controller
      */
     public function markAsRead(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'message_ids' => 'required|array',
             'message_ids.*' => 'exists:admin_chats,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         try {
@@ -159,13 +152,13 @@ class AdminChatController extends Controller
                     'admin_id' => auth()->id(),
                 ]);
 
-            return response()->json([
-                'message' => 'Messages marqués comme lus',
-                'updated_count' => $updated,
-            ]);
+            return $this->successResponse(
+                ['updated_count' => $updated],
+                'Messages marqués comme lus'
+            );
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return $this->serverErrorResponse($e->getMessage());
         }
     }
 
@@ -184,13 +177,13 @@ class AdminChatController extends Controller
                     'admin_id' => auth()->id(),
                 ]);
 
-            return response()->json([
-                'message' => 'Tous les messages marqués comme lus',
-                'updated_count' => $updated,
-            ]);
+            return $this->successResponse(
+                ['updated_count' => $updated],
+                'Tous les messages marqués comme lus'
+            );
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return $this->serverErrorResponse($e->getMessage());
         }
     }
 
@@ -222,14 +215,11 @@ class AdminChatController extends Controller
             ->orderBy('last_message_at', 'desc');
 
         if (auth()->user()->isAdmin()) {
-            // Admin peut voir toutes les conversations
             $conversations = $query->limit($request->limit ?? 20)->get();
         } else {
-            // Utilisateur ne voit que sa conversation
             $conversations = $query->where('user_id', auth()->id())->get();
         }
 
-        // Charger les utilisateurs
         $userIds = $conversations->pluck('user_id');
         $users = User::whereIn('id', $userIds)->get()->keyBy('id');
 
@@ -253,23 +243,18 @@ class AdminChatController extends Controller
     {
         $message = AdminChat::findOrFail($id);
 
-        // Vérifier les permissions
         if (!auth()->user()->isAdmin() && $message->user_id !== auth()->id()) {
-            return response()->json(['error' => 'Non autorisé'], 403);
+            return $this->unauthorizedResponse();
         }
 
         try {
-            // Supprimer l'attachment si existe
-            if ($message->attachment_path) {
-                Storage::disk('public')->delete($message->attachment_path);
-            }
-
+            $this->deleteStoredFile($message->attachment_path);
             $message->delete();
 
-            return response()->json(['message' => 'Message supprimé']);
+            return $this->successResponse([], 'Message supprimé');
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return $this->serverErrorResponse($e->getMessage());
         }
     }
 
@@ -340,12 +325,10 @@ class AdminChatController extends Controller
     {
         $this->authorize('manage-admin-chat');
 
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'admin_id' => 'required|exists:users,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         try {
@@ -353,20 +336,19 @@ class AdminChatController extends Controller
                 ->whereNull('admin_id')
                 ->update(['admin_id' => $request->admin_id]);
 
-            // Créer un message système
             $this->createSystemMessage(
                 $userId,
                 "Conversation transférée à l'administrateur",
                 'system'
             );
 
-            return response()->json([
-                'message' => 'Conversation transférée',
-                'updated_count' => $updated,
-            ]);
+            return $this->successResponse(
+                ['updated_count' => $updated],
+                'Conversation transférée'
+            );
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return $this->serverErrorResponse($e->getMessage());
         }
     }
 

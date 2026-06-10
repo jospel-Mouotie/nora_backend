@@ -9,26 +9,26 @@ use App\Models\Shop;
 use App\Models\Video;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Traits\ApiResponse;
 
 class UserHabitController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Enregistrer une action de l'utilisateur
      */
     public function trackAction(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'action_type' => 'required|in:view,search,click,purchase,like,share,bookmark',
             'entity_type' => 'required|in:product,shop,category,video',
             'entity_id' => 'required|string',
             'metadata' => 'nullable|array',
             'context' => 'nullable|array',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         try {

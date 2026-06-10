@@ -14,10 +14,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
+use App\Traits\ApiResponse;
+use App\Traits\HandlesFileUploads;
 
 class VideoController extends Controller
 {
+    use ApiResponse, HandlesFileUploads;
+
     protected $notificationService;
 
     public function __construct(NotificationService $notificationService)
@@ -29,7 +32,7 @@ class VideoController extends Controller
      */
     public function upload(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'video' => 'required|file|mimes:mp4,mov,avi,wmv,flv,webm|max:512000',
             'thumbnail' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:10240',
             'title' => 'required|string|max:255',
@@ -38,10 +41,8 @@ class VideoController extends Controller
             'allow_comments' => 'boolean',
             'allow_downloads' => 'boolean',
             'shop_id' => 'nullable|exists:shops,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         try {
@@ -50,18 +51,13 @@ class VideoController extends Controller
             $user = auth()->user();
 
             // Upload de la vidéo (sans compression)
-            $videoFile = $request->file('video');
-            $videoPath = $videoFile->store('videos', 'public');
+            $videoPath = $this->uploadFile($request, 'video', 'videos');
 
             // Upload de la miniature si présente
-            $thumbnailPath = null;
-            if ($request->hasFile('thumbnail')) {
-                $thumbnailFile = $request->file('thumbnail');
-                $thumbnailPath = $thumbnailFile->store('video-thumbnails', 'public');
-            }
+            $thumbnailPath = $this->uploadFile($request, 'thumbnail', 'video-thumbnails');
 
             // Obtenir les métadonnées basiques sans ffmpeg
-            $fileSize = $videoFile->getSize() / (1024 * 1024); // en MB
+            $fileSize = $request->file('video')->getSize() / (1024 * 1024); // en MB
 
             // Stocker les chemins relatifs
             $videoRelativePath = str_replace('public/', '', $videoPath);
@@ -119,15 +115,15 @@ class VideoController extends Controller
                 Log::warning('Erreur notification followers vidéo: ' . $e->getMessage());
             }
 
-            return response()->json([
-                'message' => 'Vidéo uploadée avec succès',
-                'video' => $videoData
-            ], 201);
+            return $this->createdResponse(
+                ['video' => $videoData],
+                'Vidéo uploadée avec succès'
+            );
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur upload vidéo: ' . $e->getMessage());
-            return response()->json(['error' => 'Erreur: ' . $e->getMessage()], 500);
+            return $this->serverErrorResponse('Erreur: ' . $e->getMessage());
         }
     }
 
@@ -328,12 +324,10 @@ class VideoController extends Controller
      */
     public function addComment(Request $request, $id): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'content' => 'required|string|max:1000',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $video = Video::findOrFail($id);
@@ -408,19 +402,13 @@ class VideoController extends Controller
     {
         $video = Video::where('user_id', auth()->id())->findOrFail($id);
 
-        if ($video->video_path) {
-            Storage::disk('public')->delete($video->video_path);
-        }
-        if ($video->thumbnail_path) {
-            Storage::disk('public')->delete($video->thumbnail_path);
-        }
-        if ($video->processed_path) {
-            Storage::disk('public')->delete($video->processed_path);
-        }
+        $this->deleteStoredFile($video->video_path);
+        $this->deleteStoredFile($video->thumbnail_path);
+        $this->deleteStoredFile($video->processed_path);
 
         $video->delete();
 
-        return response()->json(['message' => 'Vidéo supprimée avec succès']);
+        return $this->successResponse([], 'Vidéo supprimée avec succès');
     }
 
     /**

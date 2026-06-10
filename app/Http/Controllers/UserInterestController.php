@@ -6,10 +6,12 @@ use App\Models\UserInterest;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Validator;
+use App\Traits\ApiResponse;
 
 class UserInterestController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Obtenir les centres d'intérêt de l'utilisateur
      */
@@ -41,14 +43,12 @@ class UserInterestController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'category_id' => 'required|exists:categories,id',
             'priority_level' => 'required|integer|min:1|max:5',
             'metadata' => 'nullable|array',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         try {
@@ -79,14 +79,12 @@ class UserInterestController extends Controller
      */
     public function update(Request $request, $id): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'priority_level' => 'required|integer|min:1|max:5',
             'is_active' => 'required|boolean',
             'metadata' => 'nullable|array',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         try {
