@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Category;
+use App\Traits\ApiResponse;
+use App\Traits\HandlesFileUploads;
+use App\Traits\AuthorizesRoles;
 
 class CategoryController extends Controller
 {
+    use ApiResponse, HandlesFileUploads, AuthorizesRoles;
+
     /**
      * Lister toutes les catégories avec structure arborescente
      */
@@ -43,7 +47,7 @@ class CategoryController extends Controller
         $parent = Category::find($parentId);
 
         if (!$parent) {
-            return response()->json(['message' => 'Catégorie parente non trouvée'], 404);
+            return $this->notFoundResponse('Catégorie parente');
         }
 
         $children = $parent->children()
@@ -65,7 +69,7 @@ class CategoryController extends Controller
         ->find($id);
 
         if (!$category) {
-            return response()->json(['message' => 'Catégorie non trouvée'], 404);
+            return $this->notFoundResponse('Catégorie');
         }
 
         return response()->json($category);
@@ -76,44 +80,41 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeAdmin($request)) {
+            return $error;
         }
 
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
             'parent_id' => 'nullable|exists:categories,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $data = $request->all();
 
         // Gérer l'upload de l'image
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('categories', 'public');
+        if ($path = $this->uploadFile($request, 'image', 'categories')) {
             $data['image'] = $path;
         }
 
         // Vérifier qu'on ne crée pas de boucle dans l'arborescence
         if (!empty($data['parent_id'])) {
             if ($this->wouldCreateLoop($data['parent_id'])) {
-                return response()->json(['message' => 'Création d\'une boucle dans l\'arborescence détectée'], 422);
+                return $this->errorResponse('Création d\'une boucle dans l\'arborescence détectée', 422);
             }
         }
 
         $category = Category::create($data);
 
-        return response()->json([
-            'message' => 'Catégorie créée avec succès',
-            'category' => $category->load(['parent', 'children'])
-        ], 201);
+        return $this->createdResponse(
+            ['category' => $category->load(['parent', 'children'])],
+            'Catégorie créée avec succès'
+        );
     }
 
     /**
@@ -121,54 +122,47 @@ class CategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeAdmin($request)) {
+            return $error;
         }
 
         $category = Category::find($id);
         
         if (!$category) {
-            return response()->json(['message' => 'Catégorie non trouvée'], 404);
+            return $this->notFoundResponse('Catégorie');
         }
 
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
             'parent_id' => 'nullable|exists:categories,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $data = $request->all();
 
         // Gérer l'upload de l'image
-        if ($request->hasFile('image')) {
-            // Supprimer l'ancienne image si elle existe
-            if ($category->image) {
-                Storage::disk('public')->delete($category->image);
-            }
-            $path = $request->file('image')->store('categories', 'public');
+        if ($path = $this->replaceFile($request, 'image', 'categories', $category->image)) {
             $data['image'] = $path;
         }
 
         // Vérifier qu'on ne crée pas de boucle dans l'arborescence
         if (isset($data['parent_id']) && $data['parent_id'] != $category->parent_id) {
             if ($this->wouldCreateLoop($data['parent_id'], $id)) {
-                return response()->json(['message' => 'Création d\'une boucle dans l\'arborescence détectée'], 422);
+                return $this->errorResponse('Création d\'une boucle dans l\'arborescence détectée', 422);
             }
         }
 
         $category->update($data);
 
-        return response()->json([
-            'message' => 'Catégorie mise à jour avec succès',
-            'category' => $category->load(['parent', 'children'])
-        ]);
+        return $this->successResponse(
+            ['category' => $category->load(['parent', 'children'])],
+            'Catégorie mise à jour avec succès'
+        );
     }
 
     /**
@@ -176,29 +170,26 @@ class CategoryController extends Controller
      */
     public function destroy(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeAdmin($request)) {
+            return $error;
         }
 
         $category = Category::find($id);
         
         if (!$category) {
-            return response()->json(['message' => 'Catégorie non trouvée'], 404);
+            return $this->notFoundResponse('Catégorie');
         }
 
         // Vérifier qu'il n'y a pas de produits associés
         if ($category->products()->count() > 0) {
-            return response()->json(['message' => 'Impossible de supprimer une catégorie contenant des produits'], 422);
+            return $this->errorResponse('Impossible de supprimer une catégorie contenant des produits', 422);
         }
 
-        // Supprimer l'image si elle existe
-        if ($category->image) {
-            Storage::disk('public')->delete($category->image);
-        }
+        $this->deleteStoredFile($category->image);
 
         $category->delete();
 
-        return response()->json(['message' => 'Catégorie supprimée avec succès']);
+        return $this->successResponse([], 'Catégorie supprimée avec succès');
     }
 
     /**
@@ -239,7 +230,7 @@ class CategoryController extends Controller
         $category = Category::find($id);
         
         if (!$category) {
-            return response()->json(['message' => 'Catégorie non trouvée'], 404);
+            return $this->notFoundResponse('Catégorie');
         }
 
         return response()->json([

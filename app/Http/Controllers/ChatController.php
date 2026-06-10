@@ -9,11 +9,13 @@ use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
+use App\Traits\ApiResponse;
+use App\Traits\HandlesFileUploads;
 
 class ChatController extends Controller
 {
+    use ApiResponse, HandlesFileUploads;
+
     protected $notificationService;
 
     public function __construct(NotificationService $notificationService)
@@ -25,17 +27,15 @@ class ChatController extends Controller
      */
     public function sendMessage(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'delivery_id' => 'required|exists:deliveries,id',
             'content' => 'required_without:attachment|string|max:1000',
             'type' => 'nullable|in:text,image,location,system',
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png,gif,mp4,mov,avi|max:10240', // 10MB max
             'sender_latitude' => 'nullable|numeric|between:-90,90',
             'sender_longitude' => 'nullable|numeric|between:-180,180',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $delivery = Delivery::findOrFail($request->delivery_id);
@@ -43,17 +43,14 @@ class ChatController extends Controller
 
         // Vérifier que l'utilisateur est autorisé à participer à ce chat
         if (!$this->canAccessChat($sender, $delivery)) {
-            return response()->json(['error' => 'Accès non autorisé à ce chat'], 403);
+            return $this->unauthorizedResponse('Accès non autorisé à ce chat');
         }
 
         // Déterminer le destinataire
         $receiver = $this->determineReceiver($sender, $delivery);
 
         // Gérer l'upload de fichier si présent
-        $attachmentPath = null;
-        if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('chat-attachments', 'public');
-        }
+        $attachmentPath = $this->uploadFile($request, 'attachment', 'chat-attachments');
 
         $message = Message::create([
             'content' => $request->content,
@@ -71,10 +68,10 @@ class ChatController extends Controller
             $this->createLocationSystemMessage($delivery, $sender, $request->sender_latitude, $request->sender_longitude);
         }
 
-        return response()->json([
-            'message' => 'Message envoyé avec succès',
-            'data' => $message->load(['sender', 'receiver'])
-        ], 201);
+        return $this->createdResponse(
+            ['data' => $message->load(['sender', 'receiver'])],
+            'Message envoyé avec succès'
+        );
     }
 
     /**
@@ -87,7 +84,7 @@ class ChatController extends Controller
 
         // Vérifier l'accès au chat
         if (!$this->canAccessChat($user, $delivery)) {
-            return response()->json(['error' => 'Accès non autorisé à ce chat'], 403);
+            return $this->unauthorizedResponse('Accès non autorisé à ce chat');
         }
 
         $messages = Message::forDelivery($deliveryId)
@@ -114,15 +111,15 @@ class ChatController extends Controller
 
         // Vérifier que l'utilisateur est le destinataire
         if ($message->receiver_id !== $user->id) {
-            return response()->json(['error' => 'Non autorisé'], 403);
+            return $this->unauthorizedResponse();
         }
 
         $message->markAsRead();
 
-        return response()->json([
-            'message' => 'Message marqué comme lu',
-            'data' => $message
-        ]);
+        return $this->successResponse(
+            ['data' => $message],
+            'Message marqué comme lu'
+        );
     }
 
     /**
@@ -134,7 +131,7 @@ class ChatController extends Controller
         $user = auth()->user();
 
         if (!$this->canAccessChat($user, $delivery)) {
-            return response()->json(['error' => 'Accès non autorisé'], 403);
+            return $this->unauthorizedResponse('Accès non autorisé');
         }
 
         $unreadMessages = Message::forDelivery($deliveryId)
@@ -146,10 +143,10 @@ class ChatController extends Controller
             $message->markAsRead();
         }
 
-        return response()->json([
-            'message' => 'Tous les messages marqués comme lus',
-            'count' => $unreadMessages->count()
-        ]);
+        return $this->successResponse(
+            ['count' => $unreadMessages->count()],
+            'Tous les messages marqués comme lus'
+        );
     }
 
     /**
@@ -209,17 +206,15 @@ class ChatController extends Controller
 
         // Seul l'expéditeur peut supprimer son message
         if ($message->sender_id !== $user->id) {
-            return response()->json(['error' => 'Non autorisé'], 403);
+            return $this->unauthorizedResponse();
         }
 
         // Supprimer le fichier attaché s'il existe
-        if ($message->attachment_path) {
-            Storage::disk('public')->delete($message->attachment_path);
-        }
+        $this->deleteStoredFile($message->attachment_path);
 
         $message->delete();
 
-        return response()->json(['message' => 'Message supprimé avec succès']);
+        return $this->successResponse([], 'Message supprimé avec succès');
     }
 
     /**
@@ -227,22 +222,20 @@ class ChatController extends Controller
      */
     public function sendLocation(Request $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'delivery_id' => 'required|exists:deliveries,id',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'address' => 'nullable|string|max:500',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $delivery = Delivery::findOrFail($request->delivery_id);
         $sender = auth()->user();
 
         if (!$this->canAccessChat($sender, $delivery)) {
-            return response()->json(['error' => 'Accès non autorisé'], 403);
+            return $this->unauthorizedResponse('Accès non autorisé');
         }
 
         $receiver = $this->determineReceiver($sender, $delivery);
@@ -257,10 +250,10 @@ class ChatController extends Controller
             'sender_longitude' => $request->longitude,
         ]);
 
-        return response()->json([
-            'message' => 'Position partagée avec succès',
-            'data' => $message->load(['sender', 'receiver'])
-        ], 201);
+        return $this->createdResponse(
+            ['data' => $message->load(['sender', 'receiver'])],
+            'Position partagée avec succès'
+        );
     }
 
     /**
@@ -268,17 +261,14 @@ class ChatController extends Controller
      */
     private function canAccessChat($user, $delivery): bool
     {
-        // Le client de la commande
         if ($delivery->order && $delivery->order->user_id === $user->id) {
             return true;
         }
 
-        // Le livreur assigné
         if ($delivery->delivery_person_id === $user->id) {
             return true;
         }
 
-        // Admin
         if ($user->role === 'admin') {
             return true;
         }
@@ -291,17 +281,14 @@ class ChatController extends Controller
      */
     private function determineReceiver($sender, $delivery): User
     {
-        // Si l'expéditeur est le client, le destinataire est le livreur
         if ($delivery->order && $delivery->order->user_id === $sender->id) {
             return User::findOrFail($delivery->delivery_person_id);
         }
 
-        // Si l'expéditeur est le livreur, le destinataire est le client
         if ($delivery->delivery_person_id === $sender->id) {
             return User::findOrFail($delivery->order->user_id);
         }
 
-        // Par défaut, retourner le client
         return $delivery->order->user;
     }
 
@@ -339,7 +326,7 @@ class ChatController extends Controller
             'content' => "{$sender->name} a partagé sa position",
             'type' => 'system',
             'delivery_id' => $delivery->id,
-            'sender_id' => null, // Message système
+            'sender_id' => null,
             'receiver_id' => null,
         ]);
     }

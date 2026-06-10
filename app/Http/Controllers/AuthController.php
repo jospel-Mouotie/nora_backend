@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
 use App\Models\User;
 use App\Services\EmailVerificationService;
+use App\Traits\ApiResponse;
+use App\Traits\HandlesFileUploads;
 
 class AuthController extends Controller
 {
+    use ApiResponse, HandlesFileUploads;
+
     protected $emailVerificationService;
 
     public function __construct(EmailVerificationService $emailVerificationService)
@@ -23,16 +26,14 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'nullable|string|max:20',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:client,commercant,grossiste,livreur,admin',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         // Générer et envoyer le code de validation
@@ -41,7 +42,7 @@ class AuthController extends Controller
 
         // En développement, on continue même si l'email échoue
         if (!$sent && config('app.env') !== 'local') {
-            return response()->json(['message' => 'Erreur lors de l\'envoi du code de validation'], 500);
+            return $this->serverErrorResponse('Erreur lors de l\'envoi du code de validation');
         }
 
         // Stocker le code et les données temporaires
@@ -71,24 +72,22 @@ class AuthController extends Controller
      */
     public function verifyCode(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'email' => 'required|email',
             'code' => 'required|string|size:6',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $storedCode = Cache::get('verification_code_' . $request->email);
         $registrationData = Cache::get('registration_data_' . $request->email);
 
         if (!$storedCode || !$registrationData) {
-            return response()->json(['message' => 'Code expiré ou invalide'], 400);
+            return $this->errorResponse('Code expiré ou invalide', 400);
         }
 
         if ($request->code !== $storedCode) {
-            return response()->json(['message' => 'Code incorrect'], 400);
+            return $this->errorResponse('Code incorrect', 400);
         }
 
         // Créer l'utilisateur
@@ -100,12 +99,11 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return $this->createdResponse([
             'user' => $user,
             'token' => $token,
             'token_type' => 'Bearer',
-            'message' => 'Inscription réussie',
-        ], 201);
+        ], 'Inscription réussie');
     }
 
     /**
@@ -113,18 +111,16 @@ class AuthController extends Controller
      */
     public function resendCode(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'email' => 'required|email',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $registrationData = Cache::get('registration_data_' . $request->email);
 
         if (!$registrationData) {
-            return response()->json(['message' => 'Aucune inscription en cours pour cet email'], 400);
+            return $this->errorResponse('Aucune inscription en cours pour cet email', 400);
         }
 
         // Générer et envoyer un nouveau code
@@ -132,15 +128,13 @@ class AuthController extends Controller
         $sent = $this->emailVerificationService->sendVerificationCode($request->email, $code, $registrationData['name']);
 
         if (!$sent) {
-            return response()->json(['message' => 'Erreur lors de l\'envoi du code de validation'], 500);
+            return $this->serverErrorResponse('Erreur lors de l\'envoi du code de validation');
         }
 
         // Mettre à jour le code
         Cache::put('verification_code_' . $request->email, $code, now()->addMinutes(15));
 
-        return response()->json([
-            'message' => 'Nouveau code de validation envoyé',
-        ], 200);
+        return $this->successResponse([], 'Nouveau code de validation envoyé');
     }
 
     /**
@@ -148,21 +142,17 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'message' => 'Identifiants incorrects'
-            ], 401);
+            return $this->errorResponse('Identifiants incorrects', 401);
         }
 
         // Mettre à jour last_login_at
@@ -184,9 +174,7 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'message' => 'Déconnexion réussie'
-        ]);
+        return $this->successResponse([], 'Déconnexion réussie');
     }
 
     /**
@@ -238,7 +226,7 @@ class AuthController extends Controller
      */
     public function updateProfile(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $request->user()->id,
             'phone' => 'nullable|string|max:20',
@@ -246,19 +234,17 @@ class AuthController extends Controller
             'address' => 'nullable|string',
             'city' => 'nullable|string|max:255',
             'country' => 'nullable|string|max:255',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $user = $request->user();
         $user->update($request->only(['name', 'email', 'phone', 'profile_photo', 'address', 'city', 'country']));
 
-        return response()->json([
-            'message' => 'Profil mis à jour avec succès',
-            'user' => $user
-        ]);
+        return $this->successResponse(
+            ['user' => $user],
+            'Profil mis à jour avec succès'
+        );
     }
 
     /**
@@ -266,24 +252,21 @@ class AuthController extends Controller
      */
     public function updateProfilePicture(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'profile_photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $user = $request->user();
 
-        if ($request->hasFile('profile_photo')) {
-            $path = $request->file('profile_photo')->store('profile-photos', 'public');
+        if ($path = $this->uploadFile($request, 'profile_photo', 'profile-photos')) {
             $user->update(['profile_photo' => $path]);
         }
 
-        return response()->json([
-            'message' => 'Photo de profil mise à jour avec succès',
-            'user' => $user
-        ]);
+        return $this->successResponse(
+            ['user' => $user],
+            'Photo de profil mise à jour avec succès'
+        );
     }
 }

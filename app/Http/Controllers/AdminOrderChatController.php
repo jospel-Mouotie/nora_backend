@@ -6,21 +6,22 @@ use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderChat;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\ApiResponse;
 
 class AdminOrderChatController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Obtenir tous les messages de chat pour une commande entre admin et client
      */
     public function getClientMessages($orderId)
     {
         $user = Auth::user();
-        
-        // Vérifier que c'est l'admin ou le client concerné
         $order = Order::with('user')->findOrFail($orderId);
         
         if ($user->role !== 'admin' && $order->user_id !== $user->id) {
-            return response()->json(['message' => 'Non autorisé'], 403);
+            return $this->unauthorizedResponse();
         }
 
         $messages = OrderChat::where('order_id', $orderId)
@@ -37,20 +38,17 @@ class AdminOrderChatController extends Controller
      */
     public function sendClientMessage(Request $request, $orderId)
     {
-        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'message' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $user = Auth::user();
         $order = Order::findOrFail($orderId);
 
-        // Vérifier que c'est l'admin ou le client concerné
         if ($user->role !== 'admin' && $order->user_id !== $user->id) {
-            return response()->json(['message' => 'Non autorisé'], 403);
+            return $this->unauthorizedResponse();
         }
 
         $message = OrderChat::create([
@@ -70,12 +68,10 @@ class AdminOrderChatController extends Controller
     public function getShopMessages($orderId)
     {
         $user = Auth::user();
-        
-        // Vérifier que c'est l'admin ou la boutique concernée
         $order = Order::with(['user', 'shop'])->findOrFail($orderId);
         
         if ($user->role !== 'admin' && (!$order->shop || $order->shop->user_id !== $user->id)) {
-            return response()->json(['message' => 'Non autorisé'], 403);
+            return $this->unauthorizedResponse();
         }
 
         $messages = OrderChat::where('order_id', $orderId)
@@ -92,20 +88,17 @@ class AdminOrderChatController extends Controller
      */
     public function sendShopMessage(Request $request, $orderId)
     {
-        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'message' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $user = Auth::user();
         $order = Order::with('shop')->findOrFail($orderId);
 
-        // Vérifier que c'est l'admin ou la boutique concernée
         if ($user->role !== 'admin' && (!$order->shop || $order->shop->user_id !== $user->id)) {
-            return response()->json(['message' => 'Non autorisé'], 403);
+            return $this->unauthorizedResponse();
         }
 
         $message = OrderChat::create([
@@ -125,18 +118,17 @@ class AdminOrderChatController extends Controller
     public function markAsRead(Request $request, $orderId)
     {
         $user = Auth::user();
-        $chatType = $request->chat_type; // 'admin_client' ou 'admin_shop'
+        $chatType = $request->chat_type;
 
         $order = Order::findOrFail($orderId);
 
-        // Vérifier les autorisations
         if ($chatType === 'admin_client') {
             if ($user->role !== 'admin' && $order->user_id !== $user->id) {
-                return response()->json(['message' => 'Non autorisé'], 403);
+                return $this->unauthorizedResponse();
             }
         } else if ($chatType === 'admin_shop') {
             if ($user->role !== 'admin' && (!$order->shop || $order->shop->user_id !== $user->id)) {
-                return response()->json(['message' => 'Non autorisé'], 403);
+                return $this->unauthorizedResponse();
             }
         }
 
@@ -154,16 +146,14 @@ class AdminOrderChatController extends Controller
     public function getUnreadCount(Request $request)
     {
         $user = Auth::user();
-        $chatType = $request->chat_type; // 'admin_client' ou 'admin_shop'
+        $chatType = $request->chat_type;
 
         if ($user->role === 'admin') {
-            // Admin voit tous les messages non lus des clients et boutiques
             $count = OrderChat::where('chat_type', $chatType)
                 ->where('sender_type', '!=', 'admin')
                 ->where('is_read', false)
                 ->count();
         } else if ($user->role === 'client') {
-            // Client voit les messages non lus de l'admin
             $count = OrderChat::where('chat_type', 'admin_client')
                 ->where('sender_type', 'admin')
                 ->where('is_read', false)
@@ -172,7 +162,6 @@ class AdminOrderChatController extends Controller
                 })
                 ->count();
         } else {
-            // Boutique voit les messages non lus de l'admin
             $count = OrderChat::where('chat_type', 'admin_shop')
                 ->where('sender_type', 'admin')
                 ->where('is_read', false)
@@ -193,10 +182,10 @@ class AdminOrderChatController extends Controller
     public function getRecentConversations(Request $request)
     {
         $user = Auth::user();
-        $chatType = $request->chat_type; // 'admin_client' ou 'admin_shop'
+        $chatType = $request->chat_type;
 
         if ($user->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+            return $this->unauthorizedResponse();
         }
 
         $conversations = OrderChat::where('chat_type', $chatType)

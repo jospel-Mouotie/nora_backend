@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -11,30 +10,32 @@ use App\Models\OrderQrCode;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\ProductVariant;
+use App\Traits\ApiResponse;
+use App\Traits\AuthorizesRoles;
 
 class OrderController extends Controller
 {
+    use ApiResponse, AuthorizesRoles;
+
     /**
      * Créer une commande à partir du panier
      */
     public function createFromCart(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'delivery_address' => 'required|string|min:10',
             'notes' => 'nullable|string',
             'use_mb_coins' => 'nullable|boolean',
             'mb_coins_amount' => 'nullable|numeric|min:1',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $user = $request->user();
         $cart = $user->cart()->active()->with('items.productVariant.stock')->first();
 
         if (!$cart || $cart->items->isEmpty()) {
-            return response()->json(['message' => 'Panier vide'], 422);
+            return $this->errorResponse('Panier vide', 422);
         }
 
         $validationResult = $this->validateCartItems($cart->items);
@@ -54,10 +55,10 @@ class OrderController extends Controller
             if ($request->use_mb_coins && $request->mb_coins_amount) {
                 $mbCoin = \App\Models\MBCoin::where('user_id', $user->id)->first();
                 if (!$mbCoin || $mbCoin->balance < $request->mb_coins_amount) {
-                    return response()->json(['message' => 'Solde MB Coins insuffisant'], 422);
+                    return $this->errorResponse('Solde MB Coins insuffisant', 422);
                 }
                 if ($request->mb_coins_amount > $finalAmount) {
-                    return response()->json(['message' => 'Le montant en MB Coins ne peut pas dépasser le total'], 422);
+                    return $this->errorResponse('Le montant en MB Coins ne peut pas dépasser le total', 422);
                 }
                 $mbCoin->spend($request->mb_coins_amount, 'Paiement commande hybride');
                 $mbCoinsUsed = $request->mb_coins_amount;
@@ -108,17 +109,14 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'message' => 'Commande créée avec succès',
-                'order' => $order->load(['items.productVariant.product', 'shop'])
-            ], 201);
+            return $this->createdResponse(
+                ['order' => $order->load(['items.productVariant.product', 'shop'])],
+                'Commande créée avec succès'
+            );
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'message' => 'Erreur lors de la création de la commande',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->serverErrorResponse('Erreur lors de la création de la commande');
         }
     }
 
@@ -144,12 +142,12 @@ class OrderController extends Controller
                            ->find($id);
 
         if (!$order) {
-            return response()->json(['message' => 'Commande non trouvée'], 404);
+            return $this->notFoundResponse('Commande');
         }
 
         // Vérifier que l'utilisateur est le propriétaire ou admin
-        if ($order->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeOwnerOrAdmin(request(), $order->user_id)) {
+            return $error;
         }
 
         return response()->json($order);
@@ -160,24 +158,21 @@ class OrderController extends Controller
      */
     public function confirm(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeAdmin($request)) {
+            return $error;
         }
 
         $order = Order::find($id);
         if (!$order) {
-            return response()->json(['message' => 'Commande non trouvée'], 404);
+            return $this->notFoundResponse('Commande');
         }
 
         $order->confirm();
 
-        // Notifier la boutique
-        // Ici on pourrait implémenter un système de notification
-
-        return response()->json([
-            'message' => 'Commande confirmée',
-            'order' => $order->fresh()
-        ]);
+        return $this->successResponse(
+            ['order' => $order->fresh()],
+            'Commande confirmée'
+        );
     }
 
     /**
@@ -187,20 +182,20 @@ class OrderController extends Controller
     {
         $order = Order::with('shop')->find($id);
         if (!$order) {
-            return response()->json(['message' => 'Commande non trouvée'], 404);
+            return $this->notFoundResponse('Commande');
         }
 
         // Vérifier que l'utilisateur est le propriétaire de la boutique
         if ($order->shop->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Non autorisé'], 403);
+            return $this->unauthorizedResponse();
         }
 
         $order->startPreparing();
 
-        return response()->json([
-            'message' => 'Commande en préparation',
-            'order' => $order->fresh()
-        ]);
+        return $this->successResponse(
+            ['order' => $order->fresh()],
+            'Commande en préparation'
+        );
     }
 
     /**
@@ -210,19 +205,19 @@ class OrderController extends Controller
     {
         $order = Order::with('shop')->find($id);
         if (!$order) {
-            return response()->json(['message' => 'Commande non trouvée'], 404);
+            return $this->notFoundResponse('Commande');
         }
 
         if ($order->shop->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Non autorisé'], 403);
+            return $this->unauthorizedResponse();
         }
 
         $order->markAsReady();
 
-        return response()->json([
-            'message' => 'Commande prête',
-            'order' => $order->fresh()
-        ]);
+        return $this->successResponse(
+            ['order' => $order->fresh()],
+            'Commande prête'
+        );
     }
 
     /**
@@ -232,20 +227,19 @@ class OrderController extends Controller
     {
         $order = Order::find($id);
         if (!$order) {
-            return response()->json(['message' => 'Commande non trouvée'], 404);
+            return $this->notFoundResponse('Commande');
         }
 
-        // Vérifier que l'utilisateur est un livreur ou admin
-        if (!in_array($request->user()->role, ['livreur', 'admin'])) {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeRoles($request, ['livreur', 'admin'])) {
+            return $error;
         }
 
         $order->markAsDelivered();
 
-        return response()->json([
-            'message' => 'Commande livrée',
-            'order' => $order->fresh()
-        ]);
+        return $this->successResponse(
+            ['order' => $order->fresh()],
+            'Commande livrée'
+        );
     }
 
     /**
@@ -255,16 +249,15 @@ class OrderController extends Controller
     {
         $order = Order::find($id);
         if (!$order) {
-            return response()->json(['message' => 'Commande non trouvée'], 404);
+            return $this->notFoundResponse('Commande');
         }
 
-        // Vérifier que l'utilisateur est le propriétaire ou admin
-        if ($order->user_id !== $request->user()->id && $request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeOwnerOrAdmin($request, $order->user_id)) {
+            return $error;
         }
 
         if ($order->isDelivered()) {
-            return response()->json(['message' => 'Impossible d\'annuler une commande livrée'], 422);
+            return $this->errorResponse('Impossible d\'annuler une commande livrée', 422);
         }
 
         $order->cancel();
@@ -276,10 +269,10 @@ class OrderController extends Controller
             }
         }
 
-        return response()->json([
-            'message' => 'Commande annulée',
-            'order' => $order->fresh()
-        ]);
+        return $this->successResponse(
+            ['order' => $order->fresh()],
+            'Commande annulée'
+        );
     }
 
     /**
@@ -287,17 +280,15 @@ class OrderController extends Controller
      */
     public function updateStatus(Request $request, $id)
     {
-        $validator = Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'status' => 'required|in:pending,confirmed,preparing,ready,in_delivery,delivered,cancelled',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $order = Order::with('shop')->find($id);
         if (!$order) {
-            return response()->json(['message' => 'Commande non trouvée'], 404);
+            return $this->notFoundResponse('Commande');
         }
 
         $newStatus = $request->status;
@@ -307,14 +298,14 @@ class OrderController extends Controller
         switch ($newStatus) {
             case 'confirmed':
                 if ($user->role !== 'admin') {
-                    return response()->json(['message' => 'Non autorisé'], 403);
+                    return $this->unauthorizedResponse();
                 }
                 $order->confirm();
                 break;
             case 'preparing':
             case 'ready':
                 if (!$order->shop || $order->shop->user_id !== $user->id) {
-                    return response()->json(['message' => 'Non autorisé'], 403);
+                    return $this->unauthorizedResponse();
                 }
                 if ($newStatus === 'preparing') {
                     $order->startPreparing();
@@ -325,7 +316,7 @@ class OrderController extends Controller
             case 'in_delivery':
             case 'delivered':
                 if (!in_array($user->role, ['livreur', 'admin'])) {
-                    return response()->json(['message' => 'Non autorisé'], 403);
+                    return $this->unauthorizedResponse();
                 }
                 if ($newStatus === 'delivered') {
                     $order->markAsDelivered();
@@ -335,10 +326,10 @@ class OrderController extends Controller
                 break;
             case 'cancelled':
                 if ($order->user_id !== $user->id && $user->role !== 'admin') {
-                    return response()->json(['message' => 'Non autorisé'], 403);
+                    return $this->unauthorizedResponse();
                 }
                 if ($order->isDelivered()) {
-                    return response()->json(['message' => 'Impossible d\'annuler une commande livrée'], 422);
+                    return $this->errorResponse('Impossible d\'annuler une commande livrée', 422);
                 }
                 $order->cancel();
                 // Libérer le stock
@@ -352,10 +343,10 @@ class OrderController extends Controller
                 $order->update(['status' => $newStatus]);
         }
 
-        return response()->json([
-            'message' => 'Statut mis à jour',
-            'order' => $order->fresh()
-        ]);
+        return $this->successResponse(
+            ['order' => $order->fresh()],
+            'Statut mis à jour'
+        );
     }
 
     /**
@@ -368,7 +359,7 @@ class OrderController extends Controller
                            ->first();
 
         if (!$order) {
-            return response()->json(['message' => 'PIN invalide'], 404);
+            return $this->notFoundResponse('PIN invalide');
         }
 
         return response()->json([
@@ -387,7 +378,7 @@ class OrderController extends Controller
                                   ->first();
 
         if (!$qrCode || !$qrCode->isValid()) {
-            return response()->json(['message' => 'QR code invalide ou expiré'], 404);
+            return $this->errorResponse('QR code invalide ou expiré', 404);
         }
 
         return response()->json([
@@ -404,15 +395,15 @@ class OrderController extends Controller
         $qrCode = OrderQrCode::with('order')->where('qr_code', $qrCode)->first();
         
         if (!$qrCode) {
-            return response()->json(['message' => 'QR code non trouvé'], 404);
+            return $this->notFoundResponse('QR code');
         }
 
         $qrCode->markAsUsed();
 
-        return response()->json([
-            'message' => 'QR code utilisé',
-            'qr_code' => $qrCode->fresh()
-        ]);
+        return $this->successResponse(
+            ['qr_code' => $qrCode->fresh()],
+            'QR code utilisé'
+        );
     }
 
     /**
@@ -423,7 +414,7 @@ class OrderController extends Controller
         $user = $request->user();
         
         if (!$user->shop) {
-            return response()->json(['message' => 'Vous n\'avez pas de boutique'], 404);
+            return $this->notFoundResponse('Boutique');
         }
 
         $orders = Order::with(['items.productVariant.product', 'user', 'delivery'])
@@ -439,8 +430,8 @@ class OrderController extends Controller
      */
     public function pendingOrders(Request $request)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeAdmin($request)) {
+            return $error;
         }
 
         $orders = Order::with(['items.productVariant.product', 'user', 'shop'])
@@ -456,16 +447,14 @@ class OrderController extends Controller
      */
     public function assignToShop(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeAdmin($request)) {
+            return $error;
         }
 
-        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+        if ($error = $this->validateRequestData($request->all(), [
             'shop_id' => 'required|exists:shops,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        ])) {
+            return $error;
         }
 
         $order = Order::findOrFail($id);
@@ -473,10 +462,10 @@ class OrderController extends Controller
         $order->status = 'pending'; // Commande envoyée à la boutique
         $order->save();
 
-        return response()->json([
-            'message' => 'Commande assignée à la boutique',
-            'order' => $order->load(['items.productVariant.product', 'user', 'shop'])
-        ]);
+        return $this->successResponse(
+            ['order' => $order->load(['items.productVariant.product', 'user', 'shop'])],
+            'Commande assignée à la boutique'
+        );
     }
 
     /**
@@ -484,25 +473,23 @@ class OrderController extends Controller
      */
     public function sendToShop(Request $request, $id)
     {
-        if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeAdmin($request)) {
+            return $error;
         }
 
         $order = Order::with('shop')->findOrFail($id);
         
         if ($order->status !== 'pending_admin') {
-            return response()->json(['message' => 'Cette commande n\'est pas en attente'], 400);
+            return $this->errorResponse('Cette commande n\'est pas en attente', 400);
         }
 
-        // La commande est déjà assignée à une boutique lors de la création
-        // On change juste le statut pour l'envoyer à la boutique
         $order->status = 'pending';
         $order->save();
 
-        return response()->json([
-            'message' => 'Commande envoyée à la boutique',
-            'order' => $order->load(['items.productVariant.product', 'user', 'shop'])
-        ]);
+        return $this->successResponse(
+            ['order' => $order->load(['items.productVariant.product', 'user', 'shop'])],
+            'Commande envoyée à la boutique'
+        );
     }
 
     /**

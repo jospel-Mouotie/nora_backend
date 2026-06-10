@@ -6,9 +6,13 @@ use Illuminate\Http\Request;
 use App\Models\Shop;
 use App\Models\ShopFollower;
 use App\Models\ShopLike;
+use App\Traits\ApiResponse;
+use App\Traits\AuthorizesRoles;
 
 class ShopFollowController extends Controller
 {
+    use ApiResponse, AuthorizesRoles;
+
     /**
      * S'abonner à une boutique
      */
@@ -17,29 +21,29 @@ class ShopFollowController extends Controller
         $shop = Shop::active()->find($shopId);
         
         if (!$shop) {
-            return response()->json(['message' => 'Boutique non trouvée'], 404);
+            return $this->notFoundResponse('Boutique');
         }
 
-        // Vérifier si l'utilisateur est déjà abonné
         $existingFollower = ShopFollower::where('user_id', $request->user()->id)
                                       ->where('shop_id', $shopId)
                                       ->first();
 
         if ($existingFollower) {
-            return response()->json(['message' => 'Vous êtes déjà abonné à cette boutique'], 422);
+            return $this->errorResponse('Vous êtes déjà abonné à cette boutique', 422);
         }
 
-        // Créer l'abonnement
         ShopFollower::create([
             'user_id' => $request->user()->id,
             'shop_id' => $shopId,
         ]);
 
-        // Mettre à jour le compteur d'abonnés de la boutique
         $shop->followers_count = ShopFollower::where('shop_id', $shopId)->count();
         $shop->save();
 
-        return response()->json(['message' => 'Abonnement réussi', 'followers_count' => $shop->followers_count]);
+        return $this->successResponse(
+            ['followers_count' => $shop->followers_count],
+            'Abonnement réussi'
+        );
     }
 
     /**
@@ -50,7 +54,7 @@ class ShopFollowController extends Controller
         $shop = Shop::active()->find($shopId);
         
         if (!$shop) {
-            return response()->json(['message' => 'Boutique non trouvée'], 404);
+            return $this->notFoundResponse('Boutique');
         }
 
         $follower = ShopFollower::where('user_id', $request->user()->id)
@@ -58,16 +62,18 @@ class ShopFollowController extends Controller
                               ->first();
 
         if (!$follower) {
-            return response()->json(['message' => 'Vous n\'êtes pas abonné à cette boutique'], 422);
+            return $this->errorResponse('Vous n\'êtes pas abonné à cette boutique', 422);
         }
 
         $follower->delete();
 
-        // Mettre à jour le compteur d'abonnés de la boutique
         $shop->followers_count = ShopFollower::where('shop_id', $shopId)->count();
         $shop->save();
 
-        return response()->json(['message' => 'Désabonnement réussi', 'followers_count' => $shop->followers_count]);
+        return $this->successResponse(
+            ['followers_count' => $shop->followers_count],
+            'Désabonnement réussi'
+        );
     }
 
     /**
@@ -78,25 +84,23 @@ class ShopFollowController extends Controller
         $shop = Shop::active()->find($shopId);
         
         if (!$shop) {
-            return response()->json(['message' => 'Boutique non trouvée'], 404);
+            return $this->notFoundResponse('Boutique');
         }
 
-        // Vérifier si l'utilisateur a déjà liké
         $existingLike = ShopLike::where('user_id', $request->user()->id)
                                ->where('shop_id', $shopId)
                                ->first();
 
         if ($existingLike) {
-            return response()->json(['message' => 'Vous avez déjà liké cette boutique'], 422);
+            return $this->errorResponse('Vous avez déjà liké cette boutique', 422);
         }
 
-        // Créer le like
         ShopLike::create([
             'user_id' => $request->user()->id,
             'shop_id' => $shopId,
         ]);
 
-        return response()->json(['message' => 'Like ajouté']);
+        return $this->successResponse([], 'Like ajouté');
     }
 
     /**
@@ -107,7 +111,7 @@ class ShopFollowController extends Controller
         $shop = Shop::active()->find($shopId);
         
         if (!$shop) {
-            return response()->json(['message' => 'Boutique non trouvée'], 404);
+            return $this->notFoundResponse('Boutique');
         }
 
         $like = ShopLike::where('user_id', $request->user()->id)
@@ -115,12 +119,12 @@ class ShopFollowController extends Controller
                        ->first();
 
         if (!$like) {
-            return response()->json(['message' => 'Vous n\'avez pas liké cette boutique'], 422);
+            return $this->errorResponse('Vous n\'avez pas liké cette boutique', 422);
         }
 
         $like->delete();
 
-        return response()->json(['message' => 'Like retiré']);
+        return $this->successResponse([], 'Like retiré');
     }
 
     /**
@@ -145,12 +149,11 @@ class ShopFollowController extends Controller
         $shop = Shop::find($shopId);
         
         if (!$shop) {
-            return response()->json(['message' => 'Boutique non trouvée'], 404);
+            return $this->notFoundResponse('Boutique');
         }
 
-        // Vérifier que l'utilisateur est admin ou propriétaire de la boutique
-        if ($request->user()->role !== 'admin' && $shop->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'Non autorisé'], 403);
+        if ($error = $this->authorizeOwnerOrAdmin($request, $shop->user_id)) {
+            return $error;
         }
 
         $followers = ShopFollower::where('shop_id', $shopId)
