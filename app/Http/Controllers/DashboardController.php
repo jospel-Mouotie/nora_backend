@@ -26,6 +26,16 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if ($request->user()->role !== 'admin') {
+                return response()->json(['message' => 'Non autorisé'], 403);
+            }
+            return $next($request);
+        });
+    }
+
     /**
      * Obtenir le dashboard principal avec toutes les statistiques
      */

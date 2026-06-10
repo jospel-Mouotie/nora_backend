@@ -64,7 +64,7 @@ class ShopController extends Controller
             return response()->json(['message' => 'Vous avez atteint la limite de 3 boutiques actives'], 403);
         }
 
-        $data = $request->except(['photo', 'banner', 'category_ids']);
+        $data = $request->only(['name', 'description', 'address', 'phone', 'email', 'delivery_cities', 'delivery_price', 'free_delivery_min_amount', 'delivery_type', 'latitude', 'longitude', 'opening_hours']);
         $data['user_id'] = $user->id;
         $data['status'] = 'en_attente';
 

@@ -93,7 +93,7 @@ class CategoryController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $data = $request->all();
+        $data = $request->only(['name', 'description', 'is_active', 'sort_order', 'parent_id']);
 
         // Gérer l'upload de l'image
         if ($request->hasFile('image')) {
@@ -144,7 +144,7 @@ class CategoryController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $data = $request->all();
+        $data = $request->only(['name', 'description', 'is_active', 'sort_order', 'parent_id']);
 
         // Gérer l'upload de l'image
         if ($request->hasFile('image')) {

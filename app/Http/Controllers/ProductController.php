@@ -61,7 +61,7 @@ class ProductController extends Controller
             Log::error('Error in index: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -73,7 +73,7 @@ class ProductController extends Controller
     {
         try {
             Log::info('=== STORE PRODUCT START ===');
-            Log::info('Request data:', $request->all());
+            Log::info('Product store request received.');
 
             $user = $request->user();
 
@@ -265,7 +265,7 @@ class ProductController extends Controller
             Log::error($e->getTraceAsString());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur interne: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -337,7 +337,7 @@ class ProductController extends Controller
             Log::error('Error in update method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -376,7 +376,7 @@ class ProductController extends Controller
             Log::error('Error in destroy method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -406,7 +406,7 @@ class ProductController extends Controller
             Log::error('Error in show method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -432,7 +432,7 @@ class ProductController extends Controller
             Log::error('Error in byShop method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -458,7 +458,7 @@ class ProductController extends Controller
             Log::error('Error in byCategory method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -488,7 +488,7 @@ class ProductController extends Controller
             Log::error('Error in promotions method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -523,7 +523,7 @@ class ProductController extends Controller
             Log::error('Error in myProducts method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage(),
+                'message' => 'Une erreur interne est survenue',
                 'products' => []
             ], 500);
         }
@@ -589,7 +589,7 @@ class ProductController extends Controller
             Log::error('Error in activatePromotion method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -635,7 +635,7 @@ class ProductController extends Controller
             Log::error('Error in deactivatePromotion method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -660,7 +660,7 @@ class ProductController extends Controller
             Log::error('Error in variants method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -732,7 +732,7 @@ class ProductController extends Controller
             Log::error('Error in addVariant method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -774,7 +774,7 @@ class ProductController extends Controller
             Log::error('Error in getSimilar method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -819,7 +819,7 @@ class ProductController extends Controller
             Log::error('Error in getTrendingByInterests: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur: ' . $e->getMessage()
+                'message' => 'Une erreur interne est survenue'
             ], 500);
         }
     }
@@ -872,7 +872,7 @@ public function getRecommended(Request $request)
         Log::error('Error in getRecommended method: ' . $e->getMessage());
         return response()->json([
             'success' => false,
-            'message' => 'Erreur: ' . $e->getMessage()
+            'message' => 'Une erreur interne est survenue'
         ], 500);
     }
 }

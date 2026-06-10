@@ -128,7 +128,7 @@ class CartApiController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage(),
+                'message' => 'Une erreur interne est survenue',
                 'line' => $e->getLine(),
                 'file' => basename($e->getFile())
             ], 500);
@@ -179,7 +179,7 @@ class CartApiController extends Controller
             ]);
             
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Une erreur interne est survenue'], 500);
         }
     }
     
@@ -212,7 +212,7 @@ class CartApiController extends Controller
             return response()->json(['success' => true, 'message' => 'Article supprimé']);
             
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Une erreur interne est survenue'], 500);
         }
     }
     
@@ -234,7 +234,7 @@ class CartApiController extends Controller
             return response()->json(['success' => true, 'message' => 'Panier vidé']);
             
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Une erreur interne est survenue'], 500);
         }
     }
     
