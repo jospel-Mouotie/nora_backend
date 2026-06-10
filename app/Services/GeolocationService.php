@@ -37,32 +37,43 @@ class GeolocationService
     public static function geocodeAddress($address)
     {
         $cacheKey = 'geocode_' . md5($address);
-        
-        return Cache::remember($cacheKey, 86400, function () use ($address) {
-            try {
-                $response = Http::timeout(10)
-                    ->get('https://nominatim.openstreetmap.org/search', [
-                        'q' => $address,
-                        'format' => 'json',
-                        'limit' => 1,
-                        'addressdetails' => 1,
-                    ]);
 
-                if ($response->successful() && !empty($response->json())) {
-                    $data = $response->json()[0];
-                    
-                    return [
-                        'latitude' => (float) $data['lat'],
-                        'longitude' => (float) $data['lon'],
-                        'formatted_address' => $data['display_name'] ?? $address,
-                    ];
-                }
-            } catch (\Exception $e) {
-                \Log::error('Geocoding error: ' . $e->getMessage());
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        try {
+            $response = Http::timeout(10)
+                ->get('https://nominatim.openstreetmap.org/search', [
+                    'q' => $address,
+                    'format' => 'json',
+                    'limit' => 1,
+                    'addressdetails' => 1,
+                ]);
+
+            if ($response->successful() && !empty($response->json())) {
+                $data = $response->json()[0];
+
+                $result = [
+                    'latitude' => (float) $data['lat'],
+                    'longitude' => (float) $data['lon'],
+                    'formatted_address' => $data['display_name'] ?? $address,
+                ];
+
+                Cache::put($cacheKey, $result, 86400);
+                return $result;
             }
 
-            return null;
-        });
+            \Log::warning('Geocoding returned no results for address: ' . $address);
+        } catch (\Exception $e) {
+            \Log::error('Geocoding error: ' . $e->getMessage(), [
+                'address' => $address,
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+
+        return null;
     }
 
     /**
@@ -71,33 +82,48 @@ class GeolocationService
     public static function reverseGeocode($latitude, $longitude)
     {
         $cacheKey = 'reverse_geocode_' . md5($latitude . '_' . $longitude);
-        
-        return Cache::remember($cacheKey, 86400, function () use ($latitude, $longitude) {
-            try {
-                $response = Http::timeout(10)
-                    ->get('https://nominatim.openstreetmap.org/reverse', [
-                        'lat' => $latitude,
-                        'lon' => $longitude,
-                        'format' => 'json',
-                        'addressdetails' => 1,
-                    ]);
 
-                if ($response->successful()) {
-                    $data = $response->json();
-                    
-                    return [
-                        'address' => $data['display_name'] ?? '',
-                        'city' => $data['address']['city'] ?? $data['address']['town'] ?? $data['address']['village'] ?? '',
-                        'country' => $data['address']['country'] ?? '',
-                        'postcode' => $data['address']['postcode'] ?? '',
-                    ];
-                }
-            } catch (\Exception $e) {
-                \Log::error('Reverse geocoding error: ' . $e->getMessage());
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        try {
+            $response = Http::timeout(10)
+                ->get('https://nominatim.openstreetmap.org/reverse', [
+                    'lat' => $latitude,
+                    'lon' => $longitude,
+                    'format' => 'json',
+                    'addressdetails' => 1,
+                ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                $result = [
+                    'address' => $data['display_name'] ?? '',
+                    'city' => $data['address']['city'] ?? $data['address']['town'] ?? $data['address']['village'] ?? '',
+                    'country' => $data['address']['country'] ?? '',
+                    'postcode' => $data['address']['postcode'] ?? '',
+                ];
+
+                Cache::put($cacheKey, $result, 86400);
+                return $result;
             }
 
-            return null;
-        });
+            \Log::warning('Reverse geocoding returned no results', [
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Reverse geocoding error: ' . $e->getMessage(), [
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
+
+        return null;
     }
 
     /**

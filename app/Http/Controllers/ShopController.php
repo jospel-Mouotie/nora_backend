@@ -121,12 +121,20 @@ class ShopController extends Controller
 
         // Gérer l'upload de la photo
         if ($request->hasFile('photo')) {
-            // Supprimer l'ancienne photo si elle existe
-            if ($shop->photo) {
-                Storage::disk('public')->delete($shop->photo);
+            try {
+                // Supprimer l'ancienne photo si elle existe
+                if ($shop->photo) {
+                    Storage::disk('public')->delete($shop->photo);
+                }
+                $path = $request->file('photo')->store('shops', 'public');
+                if ($path === false) {
+                    return response()->json(['message' => 'Erreur lors de l\'upload de la photo'], 500);
+                }
+                $data['photo'] = $path;
+            } catch (\Exception $e) {
+                \Log::error('Error uploading shop photo: ' . $e->getMessage(), ['shop_id' => $id, 'trace' => $e->getTraceAsString()]);
+                return response()->json(['message' => 'Erreur lors de l\'upload de la photo'], 500);
             }
-            $path = $request->file('photo')->store('shops', 'public');
-            $data['photo'] = $path;
         }
 
         $shop->update($data);
@@ -155,7 +163,11 @@ class ShopController extends Controller
 
         // Supprimer la photo si elle existe
         if ($shop->photo) {
-            Storage::disk('public')->delete($shop->photo);
+            try {
+                Storage::disk('public')->delete($shop->photo);
+            } catch (\Exception $e) {
+                \Log::warning('Failed to delete shop photo during shop deletion: ' . $e->getMessage(), ['shop_id' => $id]);
+            }
         }
 
         $shop->delete();

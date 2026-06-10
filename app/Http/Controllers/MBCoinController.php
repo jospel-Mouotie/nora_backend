@@ -123,7 +123,8 @@ class MBCoinController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error processing withdrawal: ' . $e->getMessage(), ['user_id' => auth()->id(), 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors du traitement du retrait'], 500);
         }
     }
 
@@ -202,7 +203,8 @@ class MBCoinController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error adding coins: ' . $e->getMessage(), ['user_id' => $request->user_id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors de l\'ajout des MB Coins'], 500);
         }
     }
 
@@ -244,7 +246,8 @@ class MBCoinController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error('Error removing coins: ' . $e->getMessage(), ['user_id' => $request->user_id, 'trace' => $e->getTraceAsString()]);
+            return response()->json(['error' => 'Une erreur est survenue lors du retrait des MB Coins'], 500);
         }
     }
 
