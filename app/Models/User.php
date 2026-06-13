@@ -36,6 +36,9 @@ class User extends Authenticatable
         'address',
         'city',
         'country',
+        'fcm_token',
+        'fcm_token_updated_at',
+        'last_login_at',
     ];
 
     protected $hidden = [

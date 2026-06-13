@@ -91,6 +91,11 @@ class AuthController extends Controller
             return response()->json(['message' => 'Code incorrect'], 400);
         }
 
+        // Vérifier que l'email n'est pas déjà utilisé
+        if (User::where('email', $request->email)->exists()) {
+            return response()->json(['message' => 'Cet email est déjà utilisé'], 400);
+        }
+
         // Créer l'utilisateur
         $user = User::create($registrationData);
 

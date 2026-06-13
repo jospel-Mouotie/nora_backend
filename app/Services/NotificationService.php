@@ -226,6 +226,16 @@ class NotificationService
         );
     }
 
+    public function notifyAdminNewProduct(string $shopName, string $productName, int $productId): void
+    {
+        $this->sendToAdmins(
+            'new_product_added',
+            'Nouveau produit ajouté',
+            "La boutique \"$shopName\" a ajouté un nouveau produit: $productName",
+            ['product_id' => $productId, 'action' => 'admin_product_review']
+        );
+    }
+
     public function notifyNewVideo(array $followerIds, string $shopName, string $videoTitle): void
     {
         $this->sendToMultiple(

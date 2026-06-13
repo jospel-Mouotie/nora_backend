@@ -402,6 +402,78 @@ class VideoController extends Controller
     }
 
     /**
+     * Mettre à jour une vidéo (authentifié - propriétaire)
+     */
+    public function update(Request $request, $id): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:2000',
+            'is_public' => 'nullable|boolean',
+            'allow_comments' => 'nullable|boolean',
+            'allow_downloads' => 'nullable|boolean',
+            'shop_id' => 'nullable|exists:shops,id',
+            'thumbnail' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:10240',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $video = Video::where('user_id', auth()->id())->findOrFail($id);
+
+            // Mettre à jour les champs textuels
+            if ($request->has('title')) {
+                $video->title = $request->title;
+            }
+            if ($request->has('description')) {
+                $video->description = $request->description;
+            }
+            if ($request->has('is_public')) {
+                $video->is_public = $request->is_public;
+                $video->published_at = $request->is_public ? now() : null;
+            }
+            if ($request->has('allow_comments')) {
+                $video->allow_comments = $request->allow_comments;
+            }
+            if ($request->has('allow_downloads')) {
+                $video->allow_downloads = $request->allow_downloads;
+            }
+            if ($request->has('shop_id')) {
+                $video->shop_id = $request->shop_id;
+            }
+
+            // Upload de la nouvelle miniature si présente
+            if ($request->hasFile('thumbnail')) {
+                // Supprimer l'ancienne miniature
+                if ($video->thumbnail_path) {
+                    Storage::disk('public')->delete($video->thumbnail_path);
+                }
+
+                $thumbnailFile = $request->file('thumbnail');
+                $thumbnailPath = $thumbnailFile->store('video-thumbnails', 'public');
+                $video->thumbnail_path = str_replace('public/', '', $thumbnailPath);
+            }
+
+            $video->save();
+
+            $videoData = $video->toArray();
+            $videoData['video_url'] = $video->video_url;
+            $videoData['thumbnail_url'] = $video->thumbnail_url;
+
+            return response()->json([
+                'message' => 'Vidéo mise à jour avec succès',
+                'video' => $videoData
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur mise à jour vidéo: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Supprimer une vidéo (authentifié - propriétaire)
      */
     public function destroy($id): JsonResponse

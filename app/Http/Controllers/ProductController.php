@@ -86,11 +86,19 @@ class ProductController extends Controller
                     'address' => $request->address ?? 'Adresse non renseignée',
                     'phone' => $request->phone ?? $user->phone ?? '',
                     'email' => $request->email ?? $user->email,
-                    'status' => 'active',
+                    'status' => 'en_attente',
                     'is_active' => true,
                 ]);
                 $user->refresh();
                 Log::info('Shop created automatically:', ['shop_id' => $shop->id]);
+            }
+
+            // Vérifier que la boutique est validée par l'admin
+            if ($user->shop->status !== 'active') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Votre boutique doit être validée par l\'administrateur avant d\'ajouter des produits'
+                ], 403);
             }
 
             if (!$user->shop->is_active) {
@@ -252,6 +260,24 @@ class ProductController extends Controller
                 }
             } catch (\Exception $e) {
                 Log::warning('Erreur notification followers: ' . $e->getMessage());
+            }
+
+            // 🔔 NOTIFICATION: Notifier les admins du nouveau produit
+            try {
+                $shop = $user->shop;
+                if ($shop) {
+                    $this->notificationService->notifyAdminNewProduct(
+                        $shop->name,
+                        $product->name,
+                        $product->id
+                    );
+                    Log::info('Notification admin envoyée:', [
+                        'product_id' => $product->id,
+                        'shop_name' => $shop->name
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Erreur notification admin: ' . $e->getMessage());
             }
 
             return response()->json([

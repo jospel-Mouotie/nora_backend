@@ -12,8 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('fcm_token')->nullable()->after('remember_token');
-            $table->timestamp('fcm_token_updated_at')->nullable()->after('fcm_token');
+            $table->string('address')->nullable()->after('profile_photo');
+            $table->string('city')->nullable()->after('address');
+            $table->string('country')->nullable()->after('city');
         });
     }
 
@@ -23,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['fcm_token', 'fcm_token_updated_at']);
+            $table->dropColumn(['address', 'city', 'country']);
         });
     }
 };
