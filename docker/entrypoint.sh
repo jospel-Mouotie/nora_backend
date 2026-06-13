@@ -6,7 +6,7 @@ sleep 3
 # 2. Nettoyage et création de la structure de la base de données
 echo "Nettoyage et exécution des migrations Laravel..."
 php artisan migrate:fresh --force
-
+php artisan storage:link
 # 3. Exécution INDIVIDUELLE de tes seeders dans l'ordre logique des clés étrangères
 echo "Début de l'injection individuelle des seeders..."
 
