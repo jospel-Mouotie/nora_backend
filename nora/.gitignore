@@ -1,0 +1,100 @@
+# Fichiers générés par Flutter/Dart
+.dart_tool/
+.pub/
+.pub-cache/
+.packages
+build/
+flutter_*.png
+*.lock
+*.log
+*.iml
+*.iws
+*.ipr
+.idea/
+*.swp
+*.swo
+*~
+
+# Fichiers spécifiques à l'IDE
+.vscode/
+.vscode/settings.json
+.idea/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+Thumbs.db
+
+# Fichiers de configuration locaux
+local.properties
+*.keystore
+*.jks
+key.properties
+.env
+.env.*
+
+# Fichiers de logs
+logs/
+*.log
+
+# Fichiers de cache Gradle
+.gradle/
+gradle/wrapper/gradle-wrapper.properties
+gradlew
+gradlew.bat
+
+# Fichiers Android générés
+android/local.properties
+android/app/src/debug/
+android/app/src/profile/
+android/app/src/main/res/drawable/
+android/app/src/main/res/mipmap-*/
+android/app/.cxx/
+android/app/build/
+
+# Fichiers iOS générés
+ios/Flutter/App.framework/
+ios/Flutter/Flutter.framework/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_assets/
+ios/Podfile.lock
+ios/Pods/
+ios/Runner.xcworkspace/xcuserdata/
+ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+ios/Runner.xcodeproj/xcuserdata/
+ios/Runner/GeneratedPluginRegistrant.*
+
+# Fichiers macOS générés
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Flutter/ephemeral/
+macos/Podfile.lock
+macos/Pods/
+
+# Fichiers Web générés
+web/index.html
+web/manifest.json
+web/favicon.png
+web/icons/
+
+# Fichiers Windows générés
+windows/flutter/generated_plugins.cmake
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+windows/runner/GeneratedPluginRegistrant.cc
+windows/runner/GeneratedPluginRegistrant.h
+
+# Fichiers de test
+coverage/
+.test_coverage.dart
+*.gcno
+*.gcda
+
+# Fichiers de performance
+*.lprof
+
+# Fichiers de sauvegarde
+*.bak
+*.tmp
+*.swp
+*~
+

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\MBCoin;
 use App\Models\MBCoinTransaction;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +12,13 @@ use Illuminate\Support\Facades\DB;
 
 class MBCoinController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     /**
      * Obtenir le solde MB Coins de l'utilisateur
      */
@@ -29,6 +37,7 @@ class MBCoinController extends Controller
             'total_withdrawn' => $mbCoin->total_withdrawn,
             'last_earned_at' => $mbCoin->last_earned_at,
             'last_spent_at' => $mbCoin->last_spent_at,
+            'wallet_balance' => auth()->user()->wallet_balance,
         ]);
     }
 
@@ -329,5 +338,209 @@ class MBCoinController extends Controller
                 'week_spending' => $mbCoin->getSpendingByPeriod(7),
             ]
         ]);
+    }
+
+    /**
+     * Obtenir les paramètres globaux (taux et pourcentage)
+     */
+    public function getSettings(): JsonResponse
+    {
+        return response()->json([
+            'rate' => doubleval(\App\Models\Setting::get('mbcoin_rate', 0)),
+            'percentage' => doubleval(\App\Models\Setting::get('mbcoin_max_convert_percentage', 100)),
+        ]);
+    }
+
+    /**
+     * Mettre à jour les paramètres globaux (taux et pourcentage) par l'admin
+     */
+    public function setSettings(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'rate' => 'required|numeric|min:0',
+            'percentage' => 'required|numeric|min:0|max:100',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $oldRate = doubleval(\App\Models\Setting::get('mbcoin_rate', 0));
+        $newRate = doubleval($request->rate);
+        $percentage = doubleval($request->percentage);
+
+        \App\Models\Setting::set('mbcoin_rate', $newRate, 'mbcoins');
+        \App\Models\Setting::set('mbcoin_max_convert_percentage', $percentage, 'mbcoins');
+
+        // Envoyer une notification FCM à tous les utilisateurs si le taux est modifié
+        if ($newRate > 0 && $newRate != $oldRate) {
+            try {
+                $userIds = \App\Models\User::pluck('id')->toArray();
+                if (!empty($userIds)) {
+                    $this->notificationService->sendToMultiple(
+                        $userIds,
+                        'mbcoin_rate_updated',
+                        'Taux de conversion MB Coins mis à jour !',
+                        "1 MB Coin vaut désormais " . $newRate . " FCFA avec " . $percentage . "% convertible. Convertissez vos gains !"
+                    );
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning('Erreur envoi notification taux MBCoins: ' . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'message' => 'Paramètres mis à jour avec succès',
+            'rate' => $newRate,
+            'percentage' => $percentage,
+        ]);
+    }
+
+    /**
+     * Réclamer des MB Coins pour une action spécifique (visionnage, like, commentaire, login)
+     */
+    public function earnCoins(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'action' => 'required|in:view,like,comment,daily_login',
+            'video_id' => 'required_if:action,view,like,comment|exists:videos,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $userId = auth()->id();
+        $action = $request->action;
+        $videoId = $request->video_id;
+
+        $mbCoin = MBCoin::firstOrCreate(
+            ['user_id' => $userId],
+            ['balance' => 0, 'total_earned' => 0, 'total_spent' => 0, 'total_withdrawn' => 0]
+        );
+
+        $rewards = [
+            'view' => 1.0,
+            'like' => 0.5,
+            'comment' => 0.5,
+            'daily_login' => 2.0,
+        ];
+
+        $amount = $rewards[$action];
+        $description = '';
+        $source = 'activity';
+
+        if ($action === 'daily_login') {
+            $alreadyClaimed = MBCoinTransaction::where('mb_coin_id', $mbCoin->id)
+                ->where('source', 'daily_login')
+                ->whereDate('created_at', today())
+                ->exists();
+
+            if ($alreadyClaimed) {
+                return response()->json(['error' => 'Récompense journalière déjà réclamée aujourd\'hui'], 400);
+            }
+
+            $description = 'Récompense de connexion journalière';
+            $source = 'daily_login';
+        } else {
+            $alreadyEarned = MBCoinTransaction::where('mb_coin_id', $mbCoin->id)
+                ->where('source', $action)
+                ->where('source_id', $videoId)
+                ->exists();
+
+            if ($alreadyEarned) {
+                return response()->json(['error' => 'Vous avez déjà reçu une récompense pour cette action sur cette vidéo'], 400);
+            }
+
+            $video = \App\Models\Video::find($videoId);
+            $videoTitle = $video ? $video->title : 'Vidéo';
+
+            if ($action === 'view') {
+                $description = "Visionnage de la vidéo: {$videoTitle}";
+                $source = 'view';
+            } elseif ($action === 'like') {
+                $description = "Like sur la vidéo: {$videoTitle}";
+                $source = 'like';
+            } elseif ($action === 'comment') {
+                $description = "Commentaire sur la vidéo: {$videoTitle}";
+                $source = 'comment';
+            }
+        }
+
+        try {
+            $transaction = $mbCoin->earn($amount, $description, $source, $videoId);
+
+            return response()->json([
+                'message' => 'Coins gagnés avec succès !',
+                'earned' => $amount,
+                'balance' => $mbCoin->fresh()->balance,
+                'transaction' => $transaction,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Convertir des MB Coins en Franc CFA (FCFA)
+     */
+    public function convertCoins(Request $request): JsonResponse
+    {
+        $rate = doubleval(\App\Models\Setting::get('mbcoin_rate', 0));
+        if ($rate <= 0) {
+            return response()->json(['error' => 'La conversion de MB Coins n\'est pas activée actuellement.'], 400);
+        }
+
+        $percentage = doubleval(\App\Models\Setting::get('mbcoin_max_convert_percentage', 100));
+        
+        $mbCoin = MBCoin::where('user_id', auth()->id())->firstOrFail();
+        
+        // Calculer la limite max convertible basée sur le total gagné et ce qui a déjà été converti
+        $totalEarned = $mbCoin->total_earned;
+        $maxConvertibleCoins = $totalEarned * ($percentage / 100.0);
+        
+        $alreadyConvertedCoins = $mbCoin->transactions()
+            ->where('source', 'conversion')
+            ->sum('amount');
+            
+        $remainingConvertibleCoins = max(0, $maxConvertibleCoins - $alreadyConvertedCoins);
+        
+        $validator = Validator::make($request->all(), [
+            'amount' => 'required|numeric|min:1|max:' . min($mbCoin->balance, $remainingConvertibleCoins),
+        ], [
+            'amount.max' => 'Vous ne pouvez pas convertir plus que votre solde disponible (' . $mbCoin->balance . ' MB) et votre limite de conversion restante (' . $remainingConvertibleCoins . ' MB).',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $coinsToConvert = $request->amount;
+        $cashValue = $coinsToConvert * $rate;
+
+        try {
+            DB::transaction(function () use ($mbCoin, $coinsToConvert, $cashValue) {
+                // Débiter les MB Coins
+                $mbCoin->spend(
+                    $coinsToConvert,
+                    "Conversion de {$coinsToConvert} MB Coins en {$cashValue} FCFA",
+                    'conversion'
+                );
+
+                // Ajouter au portefeuille de l'utilisateur
+                $user = auth()->user();
+                $user->increment('wallet_balance', $cashValue);
+            });
+
+            return response()->json([
+                'message' => 'Conversion réussie !',
+                'converted_coins' => $coinsToConvert,
+                'cash_received' => $cashValue,
+                'new_mb_balance' => $mbCoin->fresh()->balance,
+                'new_wallet_balance' => auth()->user()->fresh()->wallet_balance,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }

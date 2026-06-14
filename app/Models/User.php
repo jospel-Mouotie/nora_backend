@@ -33,6 +33,7 @@ class User extends Authenticatable
         'role',
         'phone',
         'profile_photo',
+        'wallet_balance',
         'address',
         'city',
         'country',

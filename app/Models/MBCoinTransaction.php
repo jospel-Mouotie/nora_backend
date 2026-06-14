@@ -5,132 +5,95 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class MBCoinTransaction extends Model
+class MbcoinTransaction extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'mb_coin_id',
+        'user_id',
         'amount',
         'type',
         'description',
-        'source',
-        'source_id',
+        'metadata',
         'balance_after',
-        'method',
-        'details',
-        'reference',
-        'is_verified',
-        'verified_at',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'balance_after' => 'decimal:2',
-        'details' => 'array',
-        'is_verified' => 'boolean',
-        'verified_at' => 'datetime',
+        'metadata' => 'array',
     ];
 
-    public function mbCoin()
+    /**
+     * Relation avec l'utilisateur
+     */
+    public function user()
     {
-        return $this->belongsTo(MBCoin::class);
+        return $this->belongsTo(User::class);
     }
 
+    /**
+     * Relation avec les MBcoins de l'utilisateur
+     */
+    public function userMbcoin()
+    {
+        return $this->belongsTo(UserMbcoin::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * Obtenir le montant formaté
+     */
     public function getFormattedAmountAttribute()
     {
-        $prefix = $this->type === 'credit' ? '+' : '-';
-        return $prefix . ' ' . number_format($this->amount, 2, ',', ' ') . ' MB';
+        $prefix = $this->amount >= 0 ? '+' : '-';
+        return $prefix . ' ' . abs($this->amount) . ' MB';
     }
 
+    /**
+     * Vérifier si c'est un gain
+     */
     public function getIsCreditAttribute()
     {
-        return $this->type === 'credit';
+        return $this->amount > 0;
     }
 
+    /**
+     * Vérifier si c'est une dépense
+     */
     public function getIsDebitAttribute()
     {
-        return $this->type === 'debit';
+        return $this->amount < 0;
     }
 
-    public function getIsWithdrawalAttribute()
-    {
-        return $this->type === 'withdrawal';
-    }
-
-    public function getFormattedTypeAttribute()
-    {
-        $types = [
-            'credit' => 'Crédit',
-            'debit' => 'Débit',
-            'withdrawal' => 'Retrait',
-            'refund' => 'Remboursement',
-        ];
-
-        return $types[$this->type] ?? $this->type;
-    }
-
+    /**
+     * Scope pour les gains
+     */
     public function scopeCredits($query)
     {
-        return $query->where('type', 'credit');
+        return $query->where('amount', '>', 0);
     }
 
+    /**
+     * Scope pour les dépenses
+     */
     public function scopeDebits($query)
     {
-        return $query->where('type', 'debit');
+        return $query->where('amount', '<', 0);
     }
 
-    public function scopeWithdrawals($query)
+    /**
+     * Scope pour un type spécifique
+     */
+    public function scopeOfType($query, $type)
     {
-        return $query->where('type', 'withdrawal');
+        return $query->where('type', $type);
     }
 
-    public function scopeRefunds($query)
-    {
-        return $query->where('type', 'refund');
-    }
-
-    public function scopeFromSource($query, $source)
-    {
-        return $query->where('source', $source);
-    }
-
+    /**
+     * Scope pour une période
+     */
     public function scopeInPeriod($query, $startDate, $endDate)
     {
         return $query->whereBetween('created_at', [$startDate, $endDate]);
-    }
-
-    public function scopeVerified($query)
-    {
-        return $query->where('is_verified', true);
-    }
-
-    public function scopePending($query)
-    {
-        return $query->where('is_verified', false);
-    }
-
-    public function markAsVerified()
-    {
-        $this->update([
-            'is_verified' => true,
-            'verified_at' => now(),
-        ]);
-    }
-
-    public function getSourceDescriptionAttribute()
-    {
-        $sources = [
-            'video_like' => 'Like sur vidéo',
-            'video_view' => 'Vue de vidéo',
-            'purchase' => 'Achat boutique',
-            'reward' => 'Récompense',
-            'bonus' => 'Bonus quotidien',
-            'referral' => 'Parrainage',
-            'withdrawal' => 'Retrait',
-            'refund' => 'Remboursement',
-        ];
-
-        return $sources[$this->source] ?? $this->source;
     }
 }

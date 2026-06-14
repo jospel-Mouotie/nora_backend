@@ -6,9 +6,17 @@ use App\Models\Shop;
 use App\Models\ShopCertificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\NotificationService;
 
 class ShopCertificationController extends Controller
 {
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
     public function requestCertification(Request $request, $shopId)
     {
         $shop = Shop::where('user_id', auth()->id())->findOrFail($shopId);
@@ -26,6 +34,9 @@ class ShopCertificationController extends Controller
             'shop_id' => $shopId,
             'status' => 'pending',
         ]);
+
+        // Notifier les admins de la demande de certification
+        $this->notificationService->notifyCertificationRequested($shop->id, $shop->name);
 
         return response()->json(['message' => 'Certification requested', 'request' => $certRequest], 201);
     }
@@ -79,6 +90,9 @@ class ShopCertificationController extends Controller
             'certifiee_at' => now(),
         ]);
 
+        // Notifier le propriétaire
+        $this->notificationService->notifyCertificationApproved($shop->user_id, $shop->name);
+
         return response()->json(['message' => 'Shop certification approved']);
     }
 
@@ -89,6 +103,11 @@ class ShopCertificationController extends Controller
             'status' => 'rejected',
             'admin_comment' => $request->admin_comment
         ]);
+
+        $shop = $certRequest->shop;
+        
+        // Notifier le propriétaire
+        $this->notificationService->notifyCertificationRejected($shop->user_id, $shop->name);
 
         return response()->json(['message' => 'Shop certification rejected']);
     }

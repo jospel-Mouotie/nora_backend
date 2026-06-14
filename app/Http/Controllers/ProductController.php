@@ -67,6 +67,46 @@ class ProductController extends Controller
     }
 
     /**
+     * Obtenir la liste des produits achetables (prix <= solde du portefeuille en FCFA)
+     */
+    public function affordableProducts(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            $walletBalance = $user->wallet_balance;
+
+            $products = Product::with(['category', 'variants.stock', 'shop'])
+                ->available()
+                ->where(function ($query) use ($walletBalance) {
+                    $query->where(function ($q) use ($walletBalance) {
+                        $q->where('in_promotion', true)
+                          ->whereNotNull('promotion_price')
+                          ->where('promotion_price', '<=', $walletBalance);
+                    })->orWhere(function ($q) use ($walletBalance) {
+                        $q->where(function ($sq) {
+                            $sq->where('in_promotion', false)
+                               ->orWhereNull('promotion_price');
+                        })->where('price', '<=', $walletBalance);
+                    });
+                })
+                ->orderBy('price', 'desc')
+                ->paginate($request->get('per_page', 15));
+
+            return response()->json([
+                'success' => true,
+                'products' => $products
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in affordableProducts: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Créer un nouveau produit (propriétaire boutique uniquement)
      */
     public function store(Request $request)
@@ -127,7 +167,7 @@ class ProductController extends Controller
                 'variants.*.material' => 'nullable|string|max:50',
                 'variants.*.price_adjustment' => 'nullable|numeric',
                 'variants.*.stock' => 'required|integer|min:0',
-                'variants.*.sku' => 'required|string|unique:product_variants,sku',
+                'variants.*.sku' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -141,10 +181,12 @@ class ProductController extends Controller
             $data = $request->all();
             $data['shop_id'] = $user->shop->id;
 
-            // Générer SKU si non fourni
-            if (empty($data['sku'])) {
-                $data['sku'] = 'PRD-' . strtoupper(uniqid()) . '-' . rand(1000, 9999);
+            // Générer SKU si non fourni ou déjà pris
+            $productSku = $data['sku'] ?? null;
+            if (empty($productSku) || Product::where('sku', $productSku)->exists()) {
+                $productSku = 'PRD-' . strtoupper(uniqid()) . '-' . rand(1000, 9999);
             }
+            $data['sku'] = $productSku;
 
             // Traitement des images - upload de fichiers
             $imageUrls = [];
@@ -191,13 +233,21 @@ class ProductController extends Controller
             // Gestion des variantes et du stock
             if ($request->has('variants') && is_array($request->variants) && count($request->variants) > 0) {
                 foreach ($request->variants as $variantData) {
+                    $variantSku = $variantData['sku'] ?? null;
+                    if (empty($variantSku)) {
+                        $variantSku = 'VAR-' . strtoupper(uniqid()) . '-' . rand(1000, 9999);
+                    }
+                    while (ProductVariant::where('sku', $variantSku)->exists()) {
+                        $variantSku = 'VAR-' . strtoupper(uniqid()) . '-' . rand(1000, 9999) . '-' . rand(10, 99);
+                    }
+
                     // Créer la variante
                     $variant = ProductVariant::create([
                         'product_id' => $product->id,
                         'size' => $variantData['size'] ?? null,
                         'color' => $variantData['color'] ?? null,
                         'material' => $variantData['material'] ?? null,
-                        'sku' => $variantData['sku'],
+                        'sku' => $variantSku,
                         'price_adjustment' => $variantData['price_adjustment'] ?? 0,
                         'is_active' => true,
                     ]);
@@ -205,7 +255,7 @@ class ProductController extends Controller
                     // Créer le stock pour cette variante
                     VariantStock::create([
                         'product_variant_id' => $variant->id,
-                        'quantity' => $variantData['stock'],
+                        'quantity' => $variantData['stock'] ?? 0,
                         'reserved_quantity' => 0,
                         'low_stock_threshold' => 5,
                         'low_stock_alert' => false,
@@ -213,14 +263,19 @@ class ProductController extends Controller
 
                     Log::info('Variant created:', [
                         'variant_id' => $variant->id,
-                        'stock' => $variantData['stock']
+                        'stock' => $variantData['stock'] ?? 0
                     ]);
                 }
             } else {
                 // Si pas de variantes, créer une variante par défaut
+                $defaultVariantSku = $data['sku'] . '-DEFAULT';
+                while (ProductVariant::where('sku', $defaultVariantSku)->exists()) {
+                    $defaultVariantSku = $data['sku'] . '-DEFAULT-' . rand(100, 999);
+                }
+
                 $defaultVariant = ProductVariant::create([
                     'product_id' => $product->id,
-                    'sku' => $data['sku'] . '-DEFAULT',
+                    'sku' => $defaultVariantSku,
                     'price_adjustment' => 0,
                     'is_active' => true,
                 ]);
@@ -325,6 +380,15 @@ class ProductController extends Controller
                 'price' => 'sometimes|numeric|min:0',
                 'category_id' => 'sometimes|exists:categories,id',
                 'is_active' => 'sometimes|boolean',
+                'stock' => 'nullable|integer|min:0',
+                'variants' => 'nullable|array',
+                'variants.*.id' => 'nullable|integer|exists:product_variants,id',
+                'variants.*.size' => 'nullable|string|max:50',
+                'variants.*.color' => 'nullable|string|max:50',
+                'variants.*.material' => 'nullable|string|max:50',
+                'variants.*.price_adjustment' => 'nullable|numeric',
+                'variants.*.stock' => 'nullable|integer|min:0',
+                'variants.*.sku' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -343,8 +407,56 @@ class ProductController extends Controller
 
             $product->update($updateData);
 
-            // Si mise à jour du stock, mettre à jour la variante par défaut
-            if ($request->has('stock')) {
+            // Gestion des variantes envoyées
+            if ($request->has('variants') && is_array($request->variants) && count($request->variants) > 0) {
+                foreach ($request->variants as $variantData) {
+                    $variantId = $variantData['id'] ?? null;
+
+                    if ($variantId) {
+                        // Mise à jour d'une variante existante
+                        $variant = ProductVariant::find($variantId);
+                        if ($variant && $variant->product_id == $product->id) {
+                            $variant->update([
+                                'size' => $variantData['size'] ?? $variant->size,
+                                'color' => $variantData['color'] ?? $variant->color,
+                                'material' => $variantData['material'] ?? $variant->material,
+                                'price_adjustment' => $variantData['price_adjustment'] ?? $variant->price_adjustment,
+                            ]);
+                            if (isset($variantData['stock']) && $variant->stock) {
+                                $variant->stock->update(['quantity' => $variantData['stock']]);
+                            }
+                        }
+                    } else {
+                        // Créer une nouvelle variante
+                        $variantSku = $variantData['sku'] ?? null;
+                        if (empty($variantSku)) {
+                            $variantSku = 'VAR-' . strtoupper(uniqid()) . '-' . rand(1000, 9999);
+                        }
+                        while (ProductVariant::where('sku', $variantSku)->exists()) {
+                            $variantSku = 'VAR-' . strtoupper(uniqid()) . '-' . rand(1000, 9999) . '-' . rand(10, 99);
+                        }
+
+                        $variant = ProductVariant::create([
+                            'product_id' => $product->id,
+                            'size' => $variantData['size'] ?? null,
+                            'color' => $variantData['color'] ?? null,
+                            'material' => $variantData['material'] ?? null,
+                            'sku' => $variantSku,
+                            'price_adjustment' => $variantData['price_adjustment'] ?? 0,
+                            'is_active' => true,
+                        ]);
+
+                        VariantStock::create([
+                            'product_variant_id' => $variant->id,
+                            'quantity' => $variantData['stock'] ?? 0,
+                            'reserved_quantity' => 0,
+                            'low_stock_threshold' => 5,
+                            'low_stock_alert' => false,
+                        ]);
+                    }
+                }
+            } elseif ($request->has('stock')) {
+                // Si pas de variantes mais stock fourni, mettre à jour la variante par défaut
                 $defaultVariant = $product->variants()->first();
                 if ($defaultVariant && $defaultVariant->stock) {
                     $defaultVariant->stock->update([

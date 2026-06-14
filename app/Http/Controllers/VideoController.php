@@ -38,6 +38,8 @@ class VideoController extends Controller
             'allow_comments' => 'boolean',
             'allow_downloads' => 'boolean',
             'shop_id' => 'nullable|exists:shops,id',
+            'trim_start' => 'nullable|numeric|min:0',
+            'trim_end' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -71,6 +73,8 @@ class VideoController extends Controller
                 'title' => $request->title,
                 'description' => $request->description,
                 'video_path' => $videoRelativePath,
+                'trim_start' => $request->trim_start,
+                'trim_end' => $request->trim_end,
                 'thumbnail_path' => $thumbnailRelativePath,
                 'processed_path' => null, // Plus de compression
                 'duration_seconds' => 0, // Sans ffmpeg, on ne peut pas obtenir la durée

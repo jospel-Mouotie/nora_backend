@@ -46,6 +46,10 @@ class Shop extends Model
         'longitude' => 'decimal:8',
     ];
 
+    protected $appends = [
+        'has_pending_certification',
+    ];
+
     // Relations
     public function user()
     {
@@ -71,6 +75,16 @@ class Shop extends Model
     public function likes()
     {
         return $this->hasMany(ShopLike::class);
+    }
+
+    public function certificationRequests()
+    {
+        return $this->hasMany(ShopCertificationRequest::class);
+    }
+
+    public function getHasPendingCertificationAttribute()
+    {
+        return $this->certificationRequests()->whereIn('status', ['pending', 'paid'])->exists();
     }
 
     // banners() relation removed - ShopBanner model doesn't exist

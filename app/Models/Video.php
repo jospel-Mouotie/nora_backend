@@ -13,6 +13,8 @@ class Video extends Model
         'title',
         'description',
         'video_path',
+        'trim_start',
+        'trim_end',
         'thumbnail_path',
         'status',
         'duration_seconds',
@@ -38,6 +40,8 @@ class Video extends Model
         'published_at' => 'datetime',
         'metadata' => 'array',
         'file_size_mb' => 'decimal:2',
+        'trim_start' => 'double',
+        'trim_end' => 'double',
     ];
 
     public function user()

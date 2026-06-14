@@ -20,3 +20,21 @@ Route::get('/reel/{id}', function ($id) {
 Route::get('/product/{id}', function ($id) {
     return view('product', ['id' => $id]);
 });
+
+use Illuminate\Support\Facades\Storage;
+
+Route::get('/storage/{path}', function ($path) {
+    // Nettoyer le chemin des doubles préfixes éventuels
+    $cleanPath = preg_replace('/^\/?storage\//', '', $path);
+
+    if (!Storage::disk('public')->exists($cleanPath)) {
+        abort(404);
+    }
+
+    $filePath = Storage::disk('public')->path($cleanPath);
+
+    return response()->file($filePath, [
+        'Cache-Control' => 'public, max-age=31536000'
+    ]);
+})->where('path', '.*');
+

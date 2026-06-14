@@ -207,6 +207,9 @@ public function addItem(Request $request)
     // Mettre à jour le total du panier
     $this->updateCartTotal($cart);
 
+    // Recharger le panier pour avoir les données à jour
+    $cart->refresh();
+
     return response()->json([
         'success' => true,
         'message' => 'Produit ajouté au panier avec succès',
@@ -249,7 +252,13 @@ public function addItem(Request $request)
 
         // Récupérer le prix unitaire
         $variant = ProductVariant::find($cartItem->product_variant_id);
+        if (!$variant) {
+            return response()->json(['message' => 'Variante non trouvée'], 404);
+        }
         $product = Product::find($variant->product_id);
+        if (!$product) {
+            return response()->json(['message' => 'Produit non trouvé'], 404);
+        }
         $unitPrice = floatval($product->price) + floatval($variant->price_adjustment);
         $totalPrice = $unitPrice * $quantity;
 
@@ -359,5 +368,134 @@ private function updateCartTotal($cart)
             'total_amount' => $cart->total_amount,
             'item_count' => $items->count()
         ];
+    }
+
+    /**
+     * Obtenir le nombre d'articles dans le panier
+     */
+    public function getCartCount(Request $request)
+    {
+        $user = $request->user();
+        $cart = Cart::where('user_id', $user->id)
+                    ->where('status', 'active')
+                    ->first();
+
+        if (!$cart) {
+            return response()->json(['count' => 0]);
+        }
+
+        $count = $cart->items()->sum('quantity');
+        return response()->json(['count' => $count]);
+    }
+
+    /**
+     * Valider le panier
+     */
+    public function validateCart(Request $request)
+    {
+        $user = $request->user();
+        $cart = Cart::where('user_id', $user->id)
+                    ->where('status', 'active')
+                    ->first();
+
+        if (!$cart) {
+            return response()->json([
+                'valid' => true,
+                'message' => 'Panier vide',
+                'issues' => []
+            ]);
+        }
+
+        $issues = [];
+        $items = $cart->items;
+
+        foreach ($items as $item) {
+            $variant = $item->productVariant;
+            if (!$variant || !$variant->is_active) {
+                $issues[] = [
+                    'item_id' => $item->id,
+                    'message' => 'Variante non disponible'
+                ];
+                continue;
+            }
+
+            $product = $variant->product;
+            if (!$product || !$product->is_active) {
+                $issues[] = [
+                    'item_id' => $item->id,
+                    'message' => 'Produit non disponible'
+                ];
+                continue;
+            }
+
+            if (!$item->isQuantityAvailable()) {
+                $issues[] = [
+                    'item_id' => $item->id,
+                    'message' => 'Stock insuffisant',
+                    'available_stock' => $item->getAvailableStock(),
+                    'requested_quantity' => $item->quantity
+                ];
+            }
+        }
+
+        return response()->json([
+            'valid' => empty($issues),
+            'message' => empty($issues) ? 'Panier valide' : 'Panier contient des problèmes',
+            'issues' => $issues
+        ]);
+    }
+
+    /**
+     * Appliquer une promotion au panier
+     */
+    public function applyPromotion(Request $request)
+    {
+        $input = $request->json()->all();
+        if (empty($input)) {
+            $input = $request->all();
+        }
+
+        $validator = Validator::make($input, [
+            'discount_code' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = $request->user();
+        $cart = Cart::where('user_id', $user->id)
+                    ->where('status', 'active')
+                    ->first();
+
+        if (!$cart) {
+            return response()->json(['message' => 'Panier non trouvé'], 404);
+        }
+
+        // Pour l'instant, on simule une promotion simple
+        // Dans une implémentation complète, il faudrait vérifier le code de promotion
+        // dans une table de promotions/codes promo
+        $discount = 0;
+
+        // Exemple: code "PROMO10" donne 10% de réduction
+        if ($input['discount_code'] === 'PROMO10') {
+            $discount = $cart->total_amount * 0.10;
+        } elseif ($input['discount_code'] === 'PROMO20') {
+            $discount = $cart->total_amount * 0.20;
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Code de promotion invalide'
+            ], 400);
+        }
+
+        $cart->applyPromotionDiscount($discount);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Promotion appliquée avec succès',
+            'discount_amount' => $discount,
+            'total_amount' => $cart->total_amount
+        ]);
     }
 }

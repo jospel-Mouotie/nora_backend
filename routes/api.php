@@ -143,6 +143,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/products/{id}', [ProductController::class, 'update']);
     Route::delete('/products/{id}', [ProductController::class, 'destroy']);
     Route::get('/my-products', [ProductController::class, 'myProducts']);
+    Route::get('/products/affordable', [ProductController::class, 'affordableProducts']);
 
     // Variantes de produits
     Route::get('/products/{id}/variants', [ProductController::class, 'variants']);
@@ -252,6 +253,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin MB Coins
     Route::post('/admin/mb-coins/add', [MBCoinController::class, 'addCoins']);
     Route::post('/admin/mb-coins/remove', [MBCoinController::class, 'removeCoins']);
+    Route::post('/admin/mb-coins/settings', [MBCoinController::class, 'setSettings']);
+
+    Route::get('/mb-coins/settings', [MBCoinController::class, 'getSettings']);
+    Route::post('/mb-coins/earn', [MBCoinController::class, 'earnCoins']);
+    Route::post('/mb-coins/convert', [MBCoinController::class, 'convertCoins']);
 
     // Récompenses MB Coins
     Route::get('/mb-rewards', [MBRewardController::class, 'index']);

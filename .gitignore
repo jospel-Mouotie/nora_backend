@@ -2,7 +2,7 @@
 # --- Dépendances et Packages ---
 /node_modules
 /vendor
-/nora
+
 /NoraKotlin
 
 # --- Fichiers d'environnement et Secrets ---

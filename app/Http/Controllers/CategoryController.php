@@ -83,7 +83,7 @@ class CategoryController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_active' => 'boolean',
             'sort_order' => 'integer|min:0',
             'parent_id' => 'nullable|exists:categories,id',

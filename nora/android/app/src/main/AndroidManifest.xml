@@ -1,0 +1,106 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ========== PERMISSIONS POUR LA LOCALISATION ========== -->
+    <!-- Permission pour la localisation approximative (réseau) -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Permission pour la localisation précise (GPS) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Permission pour la localisation en arrière-plan -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+    <!-- ========== PERMISSIONS POUR LE STOCKAGE ========== -->
+    <!-- Permission pour lire le stockage externe -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- Permission pour écrire sur le stockage externe -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <!-- Permission pour accéder aux médias (Android 13+) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+    <!-- ========== PERMISSIONS POUR L'APPAREIL PHOTO ========== -->
+    <!-- Permission pour utiliser l'appareil photo -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- ========== PERMISSIONS POUR INTERNET ========== -->
+    <!-- Permission pour accéder à Internet (déjà présente normalement) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- ========== PERMISSIONS POUR LE TÉLÉPHONE ========== -->
+    <!-- Permission pour passer des appels -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <!-- ========== PERMISSIONS POUR LES NOTIFICATIONS ========== -->
+    <!-- Permission pour les notifications (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- ========== PERMISSIONS POUR LE SCAN QR CODE ========== -->
+    <!-- Flash pour le scan QR code -->
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- ========== DÉCLARATION DES FONCTIONNALITÉS ========== -->
+    <!-- Indique que l'application utilise le GPS (optionnel) -->
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <!-- Indique que l'application utilise l'appareil photo (optionnel) -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- Indique que l'application utilise le flash (optionnel) -->
+    <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
+
+    <application
+        android:label="Nora"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
+        android:requestLegacyExternalStorage="true">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+
+            <!-- Specifies an Android theme to apply to this Activity as soon as
+                 the Android process has started. This theme is visible to the user
+                 while the Flutter UI initializes. After that, this theme continues
+                 to determine the Window background behind the Flutter UI. -->
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Don't delete the meta-data below.
+             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
+        <!-- ========== CONFIGURATION POUR GOOGLE MAPS (SI UTILISÉ) ========== -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="VOTRE_CLE_API_GOOGLE_MAPS" />
+
+    </application>
+
+    <!-- Required to query activities that can process text, see:
+         https://developer.android.com/training/package-visibility and
+         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
+
+         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT" />
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
+
+</manifest>
